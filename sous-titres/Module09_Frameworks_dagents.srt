@@ -1,0 +1,247 @@
+1
+00:00:00,300 --> 00:00:03,144
+Module 9 : les frameworks d'agents.
+
+2
+00:00:03,644 --> 00:00:09,762
+Bienvenue dans le niveau trois. Tu as écrit un agent à la main : tu sais donc ce qu'un framework fait pour toi.
+
+3
+00:00:10,262 --> 00:00:13,013
+Voyons lesquels existent, et comment choisir.
+
+4
+00:00:13,863 --> 00:00:19,087
+Une idée à garder en tête : un framework ne rend pas ton agent plus intelligent.
+
+5
+00:00:19,587 --> 00:00:27,736
+La qualité vient du modèle, des outils, des prompts et des évaluations. Le framework, lui, t'évite de réécrire la plomberie.
+
+6
+00:00:28,586 --> 00:00:33,705
+Concrètement, quelle plomberie ? Voici ce qu'un bon framework prend en charge.
+
+7
+00:00:34,205 --> 00:00:39,278
+Une interface commune pour plusieurs fournisseurs : on change de modèle en une ligne.
+
+8
+00:00:39,778 --> 00:00:44,444
+La boucle agentique et la déclaration typée des outils, avec les limites d'étapes.
+
+9
+00:00:44,944 --> 00:00:51,212
+L'état durable : sauvegarder une tâche, la reprendre après une panne, ou la mettre en pause pour attendre un humain.
+
+10
+00:00:51,712 --> 00:00:56,703
+Et le streaming vers l'interface, avec des traces de chaque étape pour le débogage.
+
+11
+00:00:57,553 --> 00:01:01,732
+On range souvent sous le mot framework trois choses différentes.
+
+12
+00:01:02,232 --> 00:01:08,141
+Les boîtes à outils : elles simplifient les appels de modèles, les outils et le streaming.
+
+13
+00:01:08,641 --> 00:01:13,110
+Par exemple le Vercel AI SDK, ou Pydantic AI en Python.
+
+14
+00:01:13,610 --> 00:01:21,434
+Les moteurs d'orchestration : ils organisent des étapes en graphe, avec un état et la reprise. Par exemple LangGraph, ou Mastra.
+
+15
+00:01:21,934 --> 00:01:30,478
+Les harness d'agent : un agent complet, prêt à l'emploi, que l'on configure. Par exemple le Claude Agent SDK, ou l'OpenAI Agents SDK.
+
+16
+00:01:30,978 --> 00:01:37,757
+Et on peut les combiner : par exemple, une interface construite avec le Vercel AI SDK, devant un backend LangGraph.
+
+17
+00:01:38,607 --> 00:01:47,975
+Voici un panorama des principaux frameworks, fin deux mille vingt-six. Ce paysage bouge vite : vérifie toujours l'état actuel avant de choisir.
+
+18
+00:01:48,475 --> 00:01:55,034
+Le Vercel AI SDK : le plus utilisé en TypeScript, multi-modèles, avec des composants d'interface.
+
+19
+00:01:55,534 --> 00:02:01,791
+Mastra : un tout-en-un TypeScript, avec workflows, mémoire et évaluations.
+
+20
+00:02:02,291 --> 00:02:08,641
+LangGraph : des graphes avec état, durables, avec des pauses pour l'humain. Très utilisé en production.
+
+21
+00:02:09,141 --> 00:02:12,739
+Pydantic AI : des agents typés et simples, en Python.
+
+22
+00:02:13,239 --> 00:02:20,912
+Le Claude Agent SDK : un harness complet, issu de Claude Code, avec fichiers, shell et sous-agents.
+
+23
+00:02:21,412 --> 00:02:25,858
+Et l'OpenAI Agents SDK, organisé autour des agents et des transferts entre agents.
+
+24
+00:02:26,708 --> 00:02:32,489
+Voici notre agent du niveau deux, réécrit avec le Vercel AI SDK. Le modèle se choisit en une ligne.
+
+25
+00:02:32,989 --> 00:02:38,317
+Les outils sont déclarés avec un schéma Zod et leur fonction d'exécution, au même endroit.
+
+26
+00:02:38,817 --> 00:02:45,376
+Et la boucle agentique est gérée pour nous : on indique simplement une condition d'arrêt, ici quinze étapes maximum.
+
+27
+00:02:45,876 --> 00:02:50,287
+Trente lignes de plomberie ont disparu. Mais tu sais exactement ce qu'elles faisaient.
+
+28
+00:02:51,137 --> 00:02:57,464
+LangGraph adopte une autre approche : l'agent est un graphe explicite, avec des nœuds et des transitions.
+
+29
+00:02:57,964 --> 00:03:03,025
+Au centre, un état partagé : les messages, et toutes les données de la tâche.
+
+30
+00:03:03,525 --> 00:03:05,184
+Un nœud appelle le modèle.
+
+31
+00:03:05,684 --> 00:03:10,176
+Une transition conditionnelle regarde la réponse : un outil est-il demandé ?
+
+32
+00:03:10,676 --> 00:03:14,599
+Si oui, le nœud outils les exécute, et on revient au nœud agent.
+
+33
+00:03:15,099 --> 00:03:23,074
+Et à chaque étape, l'état est sauvegardé. On peut reprendre après une panne, ou interrompre le graphe pour attendre la validation d'un humain.
+
+34
+00:03:23,574 --> 00:03:30,574
+Cette approche est idéale quand le processus a une vraie structure : des étapes imposées, des branches, des validations.
+
+35
+00:03:31,424 --> 00:03:39,318
+Dernière catégorie : les harness. Prenons l'exemple du Claude Agent SDK, le moteur de Claude Code mis à disposition des développeurs.
+
+36
+00:03:39,818 --> 00:03:46,980
+Les outils sont inclus : lire et écrire des fichiers, chercher, lancer des commandes, aller sur le web.
+
+37
+00:03:47,480 --> 00:03:52,077
+Le contexte est géré pour toi : compaction automatique, mémoire, et sous-agents.
+
+38
+00:03:52,577 --> 00:03:58,346
+Les permissions sont configurables : quels outils, quels dossiers, quelles commandes sont autorisés.
+
+39
+00:03:58,846 --> 00:04:04,406
+Et il est extensible avec tes propres outils, via le protocole MCP, qu'on verra dans le module onze.
+
+40
+00:04:05,256 --> 00:04:09,307
+Alors, faut-il utiliser un framework ? Ça dépend.
+
+41
+00:04:09,807 --> 00:04:15,762
+Écris-le à la main si l'agent est simple, si tu veux un contrôle total, ou si l'équipe doit tout comprendre.
+
+42
+00:04:16,262 --> 00:04:18,780
+Cent lignes, c'est très maintenable.
+
+43
+00:04:19,280 --> 00:04:27,894
+Prends un framework pour des tâches longues et durables, du multi-agents, une interface en streaming, ou plusieurs modèles.
+
+44
+00:04:28,394 --> 00:04:35,115
+Et méfie-toi des abstractions trop épaisses, des API qui changent tous les six mois, et du verrouillage chez un fournisseur.
+
+45
+00:04:35,965 --> 00:04:38,936
+Pour choisir, pose-toi ces questions, dans l'ordre.
+
+46
+00:04:39,436 --> 00:04:44,009
+Quel langage parle ton équipe ? Si c'est Java, le prochain module est pour toi.
+
+47
+00:04:44,509 --> 00:04:48,212
+Travailles-tu avec un seul fournisseur de modèles, ou plusieurs ?
+
+48
+00:04:48,712 --> 00:04:52,113
+As-tu besoin d'un état durable, et de reprise après panne ?
+
+49
+00:04:52,613 --> 00:04:55,375
+Quelle observabilité est fournie pour déboguer ?
+
+50
+00:04:55,875 --> 00:05:01,284
+Et surtout : fais un prototype avec deux candidats, sur ta vraie tâche, avant de décider.
+
+51
+00:05:02,134 --> 00:05:03,634
+Faisons le point.
+
+52
+00:05:04,134 --> 00:05:08,266
+Un framework gère la plomberie, pas l'intelligence.
+
+53
+00:05:08,766 --> 00:05:13,421
+Il y a trois couches : boîte à outils, orchestration, et harness.
+
+54
+00:05:13,921 --> 00:05:20,573
+Les principaux : Vercel AI SDK, Mastra, LangGraph, Pydantic AI, et les SDK des fournisseurs.
+
+55
+00:05:21,073 --> 00:05:26,865
+Pour un agent simple, à la main. Pour du durable ou du multi-agents, un framework.
+
+56
+00:05:27,365 --> 00:05:30,359
+Et on choisit par prototype, sur sa vraie tâche.
+
+57
+00:05:31,209 --> 00:05:32,709
+À toi de jouer.
+
+58
+00:05:33,209 --> 00:05:36,935
+Porte ton agent du niveau deux sur le Vercel AI SDK.
+
+59
+00:05:37,435 --> 00:05:41,753
+Change de modèle en une ligne, et compare les résultats sur tes cas de test.
+
+60
+00:05:42,253 --> 00:05:47,210
+Compare le nombre de lignes, et note ce que tu as gagné, et ce que tu as perdu en contrôle.
+
+61
+00:05:48,060 --> 00:05:50,520
+Dans le module dix, on passe à Java.
+
+62
+00:05:51,020 --> 00:05:58,508
+Spring AI et LangChain4j : outils, mémoire et RAG, directement dans une application Spring Boot.

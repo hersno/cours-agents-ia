@@ -1,0 +1,379 @@
+1
+00:00:00,000 --> 00:00:07,056
+Bienvenue dans ce cours sur les agents IA, de zéro à expert. Voici le premier module : qu'est-ce qu'un agent IA ?
+
+2
+00:00:07,106 --> 00:00:14,835
+Nous sommes dans le niveau un, les fondations. Pas besoin de connaître l'intelligence artificielle : il suffit de savoir coder.
+
+3
+00:00:14,885 --> 00:00:17,680
+Voici le programme de ce module.
+
+4
+00:00:17,730 --> 00:00:22,695
+On part du modèle de langage et du chatbot que tout le monde connaît.
+
+5
+00:00:22,745 --> 00:00:27,223
+On définit ensuite précisément ce qu'est un agent, avec ses quatre briques.
+
+6
+00:00:27,273 --> 00:00:31,960
+On déroule la boucle agentique sur un exemple concret, étape par étape.
+
+7
+00:00:32,010 --> 00:00:37,985
+On verra quand il vaut mieux utiliser un agent, et quand un simple workflow suffit.
+
+8
+00:00:38,035 --> 00:00:44,162
+Et on terminera par des usages réels, les limites à connaître, et un premier aperçu du code.
+
+9
+00:00:44,212 --> 00:00:51,303
+Tout commence avec le LLM, le grand modèle de langage. On lui donne un texte, il produit la suite.
+
+10
+00:00:51,353 --> 00:00:58,803
+Concrètement, un LLM prédit la suite la plus probable d'un texte, un petit morceau à la fois. Ces morceaux s'appellent des tokens.
+
+11
+00:00:58,853 --> 00:01:05,641
+Comme il a appris sur une énorme quantité de textes, il sait raisonner, résumer, traduire ou écrire du code.
+
+12
+00:01:05,691 --> 00:01:12,283
+Mais retenez ceci : seul, un LLM ne fait que produire du texte. Il ne peut pas agir sur le monde.
+
+13
+00:01:12,333 --> 00:01:19,598
+Le chatbot, c'est le LLM avec une interface de discussion. Tu poses une question, il répond. Une seule étape.
+
+14
+00:01:19,648 --> 00:01:27,063
+Première limite : il n'a pas accès au monde. Il ne connaît ni tes fichiers, ni ta base de données, ni l'actualité.
+
+15
+00:01:27,113 --> 00:01:34,528
+Deuxième limite : il ne peut pas agir. Il ne va pas envoyer un mail, créer un ticket ou lancer tes tests.
+
+16
+00:01:34,578 --> 00:01:42,307
+Troisième limite : il n'y a pas de suivi. C'est toi qui enchaînes les étapes, qui copies, colles, et vérifies le résultat.
+
+17
+00:01:42,357 --> 00:01:46,278
+Voici la définition que nous utiliserons dans tout le cours.
+
+18
+00:01:46,328 --> 00:01:53,360
+Un agent IA est un système dans lequel un LLM décide lui-même des étapes, et utilise des outils pour atteindre un objectif.
+
+19
+00:01:53,410 --> 00:01:59,896
+Il décide : le chemin n'est pas écrit à l'avance par le développeur. C'est le modèle qui choisit quoi faire ensuite.
+
+20
+00:01:59,946 --> 00:02:06,188
+Il agit : il appelle des outils, comme une API, une base de données, des fichiers ou un navigateur.
+
+21
+00:02:06,238 --> 00:02:13,155
+Et il persévère : il observe le résultat de chaque action, et continue jusqu'à ce que l'objectif soit atteint.
+
+22
+00:02:13,205 --> 00:02:15,907
+Un agent repose sur quatre briques.
+
+23
+00:02:15,957 --> 00:02:22,896
+Un : le modèle. C'est le cerveau. Il comprend la demande, raisonne, et choisit la prochaine action.
+
+24
+00:02:22,946 --> 00:02:28,840
+Deux : les outils. Ce sont les mains de l'agent : des fonctions que le modèle a le droit d'appeler.
+
+25
+00:02:28,890 --> 00:02:36,479
+Trois : la mémoire. Ce qui a déjà été dit, fait et appris, pendant la tâche et parfois d'une session à l'autre.
+
+26
+00:02:36,529 --> 00:02:44,060
+Quatre : les instructions. Le rôle de l'agent, son objectif, les règles et les limites qu'il doit respecter.
+
+27
+00:02:44,110 --> 00:02:48,008
+Chacune de ces briques aura son module dans le cours.
+
+28
+00:02:48,058 --> 00:02:54,116
+Le cœur de tout agent, c'est une boucle. Retenez ce schéma : il reviendra dans chaque module.
+
+29
+00:02:54,166 --> 00:03:02,951
+Étape un : percevoir. L'agent reçoit la demande, avec son contexte : les instructions, l'historique, les résultats précédents.
+
+30
+00:03:03,001 --> 00:03:09,243
+Étape deux : raisonner. Le modèle se demande : quelle est la prochaine étape la plus utile ?
+
+31
+00:03:09,293 --> 00:03:16,592
+Étape trois : agir. Il appelle un outil, par exemple une recherche, une requête SQL ou un appel d'API.
+
+32
+00:03:16,642 --> 00:03:23,105
+Étape quatre : observer. Le résultat de l'outil est ajouté au contexte, et l'agent le lit.
+
+33
+00:03:23,155 --> 00:03:28,120
+Puis la boucle recommence, avec un contexte plus riche à chaque tour.
+
+34
+00:03:28,170 --> 00:03:34,134
+Elle s'arrête quand le modèle estime que l'objectif est atteint. Il produit alors sa réponse finale.
+
+35
+00:03:34,184 --> 00:03:39,394
+Cette boucle s'appelle souvent le pattern ReAct : raisonner, puis agir.
+
+36
+00:03:39,444 --> 00:03:47,591
+Prenons un exemple. L'utilisateur demande : trouve le vol le moins cher Paris Lisbonne le douze novembre, et ajoute-le à mon agenda.
+
+37
+00:03:47,641 --> 00:03:53,117
+Premier tour. L'agent raisonne : je dois d'abord chercher les vols disponibles.
+
+38
+00:03:53,167 --> 00:03:58,771
+Il agit en appelant l'outil search flights, avec le départ, l'arrivée et la date.
+
+39
+00:03:58,821 --> 00:04:03,717
+Remarquez : c'est le modèle qui a rempli ces paramètres à partir de la phrase.
+
+40
+00:04:03,767 --> 00:04:09,859
+Il observe le résultat : trois vols, le moins cher part à sept heures cinq pour quatre-vingt-neuf euros.
+
+41
+00:04:09,909 --> 00:04:15,443
+Deuxième tour. Il raisonne à nouveau : il faut maintenant créer l'événement dans l'agenda.
+
+42
+00:04:15,493 --> 00:04:21,236
+Il appelle un deuxième outil, add calendar event, avec le titre et l'heure du vol.
+
+43
+00:04:21,286 --> 00:04:24,394
+Il observe : l'événement est créé.
+
+44
+00:04:24,444 --> 00:04:29,386
+Troisième tour : l'objectif est atteint, il répond à l'utilisateur.
+
+45
+00:04:29,436 --> 00:04:35,134
+Deux outils, trois tours de boucle, et aucune de ces étapes n'était codée à l'avance.
+
+46
+00:04:35,184 --> 00:04:39,024
+Résumons la différence entre un chatbot et un agent.
+
+47
+00:04:39,074 --> 00:04:44,248
+Le chatbot donne une seule réponse. L'agent travaille en plusieurs tours, en boucle.
+
+48
+00:04:44,298 --> 00:04:50,064
+Avec un chatbot, c'est l'utilisateur qui décide du chemin. Avec un agent, c'est le modèle.
+
+49
+00:04:50,114 --> 00:04:55,114
+Le chatbot se limite à ce qu'il a appris. L'agent accède au monde par ses outils.
+
+50
+00:04:55,164 --> 00:04:59,723
+Le chatbot produit du texte. L'agent produit une tâche accomplie.
+
+51
+00:04:59,773 --> 00:05:05,900
+Mais tout a un prix : un agent coûte plus cher, prend plus de temps, et sa durée est variable.
+
+52
+00:05:05,950 --> 00:05:11,880
+En réalité, il n'y a pas d'un côté le chatbot et de l'autre l'agent. Il y a une échelle d'autonomie.
+
+53
+00:05:11,930 --> 00:05:16,466
+Tout en bas : l'appel simple. Un prompt, une réponse.
+
+54
+00:05:16,516 --> 00:05:25,022
+Ensuite, la chaîne : plusieurs appels au modèle, dans un ordre fixé par le code. Par exemple, résumer puis traduire.
+
+55
+00:05:25,072 --> 00:05:30,188
+Puis le routeur : le modèle choisit une branche parmi plusieurs que tu as prévues.
+
+56
+00:05:30,238 --> 00:05:34,867
+Vient l'agent : le modèle choisit lui-même les étapes et les outils.
+
+57
+00:05:34,917 --> 00:05:44,573
+Et tout en haut, les systèmes multi-agents, où plusieurs agents se répartissent le travail. À gauche, ce sont des workflows : le code décide.
+
+58
+00:05:44,623 --> 00:05:48,173
+À droite, des agents : le modèle décide.
+
+59
+00:05:48,223 --> 00:05:51,448
+Alors, quand faut-il utiliser un agent ?
+
+60
+00:05:51,498 --> 00:06:00,016
+Oui, un agent, quand la tâche est ouverte, que le nombre d'étapes est imprévisible, et qu'il faut s'adapter aux résultats intermédiaires.
+
+61
+00:06:00,066 --> 00:06:04,486
+Par exemple : corriger un bug, ou mener une recherche.
+
+62
+00:06:04,536 --> 00:06:13,902
+Non, un workflow suffit, quand les étapes sont connues à l'avance, que tu veux un résultat prévisible et auditable, ou que le coût et le délai sont serrés.
+
+63
+00:06:13,952 --> 00:06:19,126
+Par exemple : classer un mail, ou extraire les données d'une facture.
+
+64
+00:06:19,176 --> 00:06:26,232
+Retenez la règle d'or : commencez par la solution la plus simple, et n'ajoutez de l'autonomie que si elle apporte un vrai gain.
+
+65
+00:06:26,282 --> 00:06:31,225
+Les agents ne sont pas de la science-fiction : beaucoup sont déjà en production.
+
+66
+00:06:31,275 --> 00:06:37,297
+Les agents de code lisent un dépôt, modifient le code, lancent les tests, et ouvrent une pull request.
+
+67
+00:06:37,347 --> 00:06:45,749
+En support client, ils consultent la commande, appliquent la politique de l'entreprise, remboursent, ou passent la main à un humain.
+
+68
+00:06:45,799 --> 00:06:53,017
+En recherche, ils multiplient les recherches, lisent les sources, et rédigent un rapport avec ses références.
+
+69
+00:06:53,067 --> 00:06:59,984
+Et en opérations, ils analysent une alerte, lisent les logs, et proposent ou appliquent un correctif.
+
+70
+00:07:00,034 --> 00:07:04,965
+Un agent a aussi des limites, et un bon développeur doit les connaître.
+
+71
+00:07:05,015 --> 00:07:14,148
+D'abord, les erreurs s'accumulent. Avec quatre-vingt-quinze pour cent de réussite par étape, une tâche de dix étapes ne réussit qu'environ six fois sur dix.
+
+72
+00:07:14,198 --> 00:07:21,764
+Ensuite, le coût et la latence. À chaque tour, le modèle relit tout le contexte : plus de tokens consommés, et plus de temps.
+
+73
+00:07:21,814 --> 00:07:30,262
+Il y a aussi la sécurité. Un texte malveillant, dans une page web ou un mail lu par l'agent, peut le détourner.
+
+74
+00:07:30,312 --> 00:07:32,549
+C'est l'injection de prompt.
+
+75
+00:07:32,599 --> 00:07:42,650
+La réponse, ce sont les garde-fous : limiter les itérations, restreindre les permissions, demander une validation humaine pour les actions sensibles, et évaluer l'agent.
+
+76
+00:07:42,700 --> 00:07:45,251
+Tout le niveau quatre y est consacré.
+
+77
+00:07:45,301 --> 00:07:52,589
+Voici, en avant-première, à quoi ressemble cette boucle en code. Une quinzaine de lignes en TypeScript.
+
+78
+00:07:52,639 --> 00:07:56,559
+On part d'une liste de messages qui contient l'objectif.
+
+79
+00:07:56,609 --> 00:08:03,478
+À chaque tour, on appelle le modèle en lui donnant les messages et la liste des outils : c'est l'étape raisonner.
+
+80
+00:08:03,528 --> 00:08:09,387
+Si le modèle ne demande aucun outil, c'est qu'il a terminé : on renvoie sa réponse.
+
+81
+00:08:09,437 --> 00:08:17,491
+Sinon, on exécute chaque outil demandé, c'est l'étape agir, et on ajoute le résultat aux messages, c'est l'étape observer.
+
+82
+00:08:17,541 --> 00:08:24,249
+Et la limite de dix tours est notre premier garde-fou. Vous écrirez cette boucle vous-même dans le module cinq.
+
+83
+00:08:24,299 --> 00:08:27,094
+Faisons le point sur ce qu'il faut retenir.
+
+84
+00:08:27,144 --> 00:08:31,958
+Un : un LLM produit du texte, alors qu'un agent agit pour atteindre un objectif.
+
+85
+00:08:32,008 --> 00:08:38,854
+Deux : un agent repose sur quatre briques : le modèle, les outils, la mémoire et les instructions.
+
+86
+00:08:38,904 --> 00:08:44,392
+Trois : il fonctionne en boucle : percevoir, raisonner, agir, observer.
+
+87
+00:08:44,442 --> 00:08:51,555
+Quatre : choisissez toujours la solution la plus simple. Si les étapes sont connues, un workflow suffit.
+
+88
+00:08:51,605 --> 00:08:55,375
+Cinq : un agent a toujours besoin de garde-fous.
+
+89
+00:08:55,425 --> 00:08:57,550
+Place à la pratique.
+
+90
+00:08:57,600 --> 00:09:01,799
+Ouvrez un assistant IA, avec la recherche web activée.
+
+91
+00:09:01,849 --> 00:09:12,120
+Donnez-lui une tâche en plusieurs étapes. Par exemple : compare les trois frameworks d'agents Java les plus utilisés, et recommande-m'en un pour Spring Boot.
+
+92
+00:09:12,170 --> 00:09:19,562
+Observez et notez chaque étape : qu'a-t-il cherché, qu'a-t-il lu, qu'a-t-il décidé ? Vous verrez la boucle agentique en direct.
+
+93
+00:09:19,612 --> 00:09:25,844
+Enfin, repérez où il s'est trompé ou a hésité, et demandez-vous quel garde-fou l'aurait évité.
+
+94
+00:09:25,894 --> 00:09:31,336
+Dans le module deux, on ouvre le capot du cerveau de l'agent : comment fonctionne un LLM.
+
+95
+00:09:31,386 --> 00:09:41,403
+Tokens, fenêtre de contexte, température, hallucinations : tout ce qu'il faut comprendre pour bien choisir et bien utiliser un modèle. À tout de suite.

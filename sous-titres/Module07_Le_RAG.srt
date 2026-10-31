@@ -1,0 +1,259 @@
+1
+00:00:00,300 --> 00:00:04,815
+Module 7 : le RAG, la génération augmentée par la recherche.
+
+2
+00:00:05,315 --> 00:00:09,946
+Ton agent ne connaît ni ta documentation, ni ton code, ni tes procédures.
+
+3
+00:00:10,446 --> 00:00:15,240
+Le RAG résout ce problème : on cherche les bons passages, et on les donne au modèle.
+
+4
+00:00:16,090 --> 00:00:22,173
+RAG signifie Retrieval Augmented Generation : génération augmentée par la recherche.
+
+5
+00:00:22,673 --> 00:00:24,173
+L'idée est simple.
+
+6
+00:00:24,673 --> 00:00:31,464
+Au lieu de tout mettre dans le contexte, on cherche les quelques passages utiles à la question, et on les donne au modèle pour qu'il réponde.
+
+7
+00:00:31,964 --> 00:00:33,855
+Comme un examen à livre ouvert.
+
+8
+00:00:34,705 --> 00:00:40,857
+Un système RAG fonctionne en deux phases. La première, l'indexation, se fait à l'avance, une fois.
+
+9
+00:00:41,357 --> 00:00:45,443
+On part de tes documents : wiki, PDF, code, tickets.
+
+10
+00:00:45,943 --> 00:00:49,413
+On les découpe en morceaux, qu'on appelle des chunks.
+
+11
+00:00:49,913 --> 00:00:53,825
+Chaque morceau est transformé en vecteur par un modèle d'embedding.
+
+12
+00:00:54,325 --> 00:00:59,119
+Et on stocke les vecteurs, avec le texte et sa source, dans une base vectorielle.
+
+13
+00:00:59,969 --> 00:01:02,731
+La deuxième phase se produit à chaque question.
+
+14
+00:01:03,231 --> 00:01:05,215
+L'utilisateur pose une question.
+
+15
+00:01:05,715 --> 00:01:09,441
+La question est transformée en vecteur, avec le même modèle.
+
+16
+00:01:09,941 --> 00:01:14,828
+On cherche les morceaux dont les vecteurs sont les plus proches : par exemple les cinq meilleurs.
+
+17
+00:01:15,328 --> 00:01:20,888
+Et on donne au modèle la question avec ces passages. Il répond en s'appuyant dessus, et en citant ses sources.
+
+18
+00:01:21,738 --> 00:01:26,358
+Le cœur du système, ce sont les embeddings. Prenons le temps de les comprendre.
+
+19
+00:01:26,858 --> 00:01:34,020
+Un embedding transforme un texte en vecteur : une liste de cinq cents à trois mille nombres, qui représente son sens.
+
+20
+00:01:34,520 --> 00:01:42,077
+Deux textes de sens proche ont des vecteurs proches, même sans mot en commun. Rembourser un client est proche de remboursement d'une commande.
+
+21
+00:01:42,577 --> 00:01:48,915
+On mesure cette proximité avec la similarité cosinus : l'angle entre deux vecteurs. Un, c'est identique.
+
+22
+00:01:49,415 --> 00:01:57,437
+On utilise un modèle d'embedding dédié, via une API ou en open source. Et toujours le même pour indexer et pour chercher.
+
+23
+00:01:58,287 --> 00:02:02,709
+Le découpage est l'étape la plus sous-estimée, et souvent celle qui fait la qualité.
+
+24
+00:02:03,209 --> 00:02:08,920
+La bonne taille : trois cents à mille tokens. Assez pour garder le sens, assez court pour rester précis.
+
+25
+00:02:09,420 --> 00:02:16,908
+Il faut suivre la structure du document : couper par titre, par section, ou par fonction pour du code, jamais au milieu d'une phrase.
+
+26
+00:02:17,408 --> 00:02:22,910
+Un léger chevauchement entre deux morceaux, de dix à quinze pour cent, évite de couper une idée en deux.
+
+27
+00:02:23,410 --> 00:02:29,655
+Et chaque morceau garde son contexte : le titre du document, la section, la date, et les droits d'accès.
+
+28
+00:02:30,155 --> 00:02:35,413
+Ajouter une phrase de contexte en tête de chaque morceau améliore nettement la recherche.
+
+29
+00:02:36,263 --> 00:02:45,167
+La recherche par vecteurs a une faiblesse : les termes exacts. Un code d'erreur, un nom de classe, une référence. D'où la recherche hybride.
+
+30
+00:02:45,667 --> 00:02:49,973
+La recherche vectorielle trouve par le sens, même avec d'autres mots.
+
+31
+00:02:50,473 --> 00:02:59,029
+La recherche par mots-clés, avec l'algorithme BM25, trouve les termes exacts : un code d'erreur, un nom de classe.
+
+32
+00:02:59,529 --> 00:03:05,066
+On fusionne les deux classements, par exemple avec la méthode Reciprocal Rank Fusion.
+
+33
+00:03:05,566 --> 00:03:13,309
+Et pour aller plus loin, un modèle de reranking reclasse les cinquante meilleurs candidats, pour n'en garder que cinq, beaucoup plus pertinents.
+
+34
+00:03:14,159 --> 00:03:19,429
+Où stocker les vecteurs ? Bonne nouvelle : tu n'as pas forcément besoin d'une nouvelle base.
+
+35
+00:03:19,929 --> 00:03:26,058
+PostgreSQL avec l'extension pgvector : ta base existante, en SQL, avec les transactions.
+
+36
+00:03:26,558 --> 00:03:30,563
+C'est le choix par défaut, surtout si tu es déjà sur Postgres.
+
+37
+00:03:31,063 --> 00:03:37,831
+Une base dédiée, comme Qdrant ou Weaviate : performances et filtres avancés, pour des dizaines de millions de vecteurs.
+
+38
+00:03:38,331 --> 00:03:43,740
+Et en mémoire : zéro infrastructure, parfait pour un prototype avec quelques milliers de morceaux.
+
+39
+00:03:44,590 --> 00:03:53,610
+Voici à quoi ça ressemble avec PostgreSQL et pgvector. Une table stocke chaque morceau, sa source, sa section, son texte, et son vecteur.
+
+40
+00:03:54,110 --> 00:03:59,659
+Un index HNSW rend la recherche rapide, même sur des millions de lignes.
+
+41
+00:04:00,159 --> 00:04:08,111
+Pour chercher, on calcule l'embedding de la question, et on trie par distance cosinus, avec l'opérateur dédié. On garde les cinq plus proches.
+
+42
+00:04:08,611 --> 00:04:11,338
+C'est tout : du SQL standard.
+
+43
+00:04:12,188 --> 00:04:18,909
+Dernière étape : la génération. Le prompt fait la différence entre une réponse fiable et une hallucination.
+
+44
+00:04:19,409 --> 00:04:22,926
+Place chaque passage dans une balise document, avec sa source.
+
+45
+00:04:23,426 --> 00:04:28,963
+Exige des citations : cite la source de chaque affirmation. L'utilisateur peut vérifier.
+
+46
+00:04:29,463 --> 00:04:37,345
+Et autorise explicitement le modèle à dire que la réponse n'est pas dans les documents. C'est la meilleure protection contre les hallucinations.
+
+47
+00:04:38,195 --> 00:04:41,271
+Pour finir, les pièges les plus fréquents en production.
+
+48
+00:04:41,771 --> 00:04:48,005
+Un mauvais découpage : un tableau coupé en deux, un contexte perdu, et les réponses tombent à côté.
+
+49
+00:04:48,505 --> 00:04:53,949
+Des documents obsolètes : il faut réindexer à chaque mise à jour, et dater les sources.
+
+50
+00:04:54,449 --> 00:04:59,858
+Les droits d'accès : un utilisateur ne doit jamais recevoir un passage qu'il n'a pas le droit de lire.
+
+51
+00:05:00,358 --> 00:05:03,898
+On filtre par permissions avant la recherche, pas après.
+
+52
+00:05:04,398 --> 00:05:10,829
+Et l'absence de mesure : construis un jeu de questions avec les bonnes réponses, et mesure si la recherche trouve les bons passages.
+
+53
+00:05:11,679 --> 00:05:13,179
+Faisons le point.
+
+54
+00:05:13,679 --> 00:05:17,939
+Le RAG consiste à chercher les passages utiles, puis à répondre avec.
+
+55
+00:05:18,439 --> 00:05:22,420
+L'indexation : découper, vectoriser, stocker.
+
+56
+00:05:22,920 --> 00:05:25,462
+Le découpage fait souvent toute la qualité.
+
+57
+00:05:25,962 --> 00:05:30,443
+Recherche hybride et reranking apportent la précision.
+
+58
+00:05:30,943 --> 00:05:36,352
+Et en production : des citations, le droit de dire je ne sais pas, et le respect des permissions.
+
+59
+00:05:37,202 --> 00:05:38,702
+À toi de jouer.
+
+60
+00:05:39,202 --> 00:05:44,356
+Lance PostgreSQL avec pgvector, grâce à l'image Docker officielle.
+
+61
+00:05:44,856 --> 00:05:48,559
+Indexe la documentation d'un de tes projets, découpée par titre.
+
+62
+00:05:49,059 --> 00:05:52,831
+Fais répondre l'agent à dix questions, avec citation des sources.
+
+63
+00:05:53,331 --> 00:06:00,575
+Puis compare la recherche vectorielle seule et la recherche hybride, sur des questions qui contiennent des termes exacts.
+
+64
+00:06:01,425 --> 00:06:05,871
+Dans le module huit, on rend le RAG intelligent : c'est l'agentic RAG.
+
+65
+00:06:06,371 --> 00:06:12,268
+L'agent décide lui-même quand chercher, quoi chercher, et où chercher, y compris sur le web.

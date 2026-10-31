@@ -1,0 +1,227 @@
+1
+00:00:00,300 --> 00:00:03,016
+Module 15 : l'observabilité.
+
+2
+00:00:03,516 --> 00:00:08,008
+Un agent en production prend des décisions seul, des milliers de fois par jour.
+
+3
+00:00:08,508 --> 00:00:13,256
+Pour le comprendre, le déboguer et l'améliorer, il faut voir ce qu'il fait.
+
+4
+00:00:14,106 --> 00:00:19,353
+En production, face à n'importe quelle requête, tu dois pouvoir répondre à trois questions.
+
+5
+00:00:19,853 --> 00:00:25,843
+Qu'a fait l'agent ? Pourquoi l'a-t-il fait ? Et combien cela a-t-il coûté ? Sans observabilité, tu es aveugle.
+
+6
+00:00:26,693 --> 00:00:29,804
+Que faut-il enregistrer ? Quatre familles d'informations.
+
+7
+00:00:30,304 --> 00:00:37,966
+Chaque appel au modèle : le prompt, la réponse, le modèle utilisé, les tokens, la latence, et la raison d'arrêt.
+
+8
+00:00:38,466 --> 00:00:44,734
+Chaque appel d'outil : son nom, ses arguments, son résultat, sa durée, et son éventuelle erreur.
+
+9
+00:00:45,234 --> 00:00:49,088
+Le contexte : l'utilisateur, la session, la conversation.
+
+10
+00:00:49,588 --> 00:00:57,784
+Et les versions : celle du prompt, des outils, et du modèle. Sans elles, impossible de savoir si un changement a causé un problème.
+
+11
+00:00:58,634 --> 00:01:03,056
+On organise ces informations en traces, comme pour un système distribué.
+
+12
+00:01:03,556 --> 00:01:07,653
+Une trace représente une requête de l'utilisateur, de bout en bout.
+
+13
+00:01:08,153 --> 00:01:10,857
+Elle contient un span pour la boucle de l'agent.
+
+14
+00:01:11,357 --> 00:01:13,608
+Puis un span pour chaque appel au modèle,
+
+15
+00:01:14,108 --> 00:01:16,232
+et un span pour chaque exécution d'outil.
+
+16
+00:01:16,732 --> 00:01:23,418
+Les sous-agents apparaissent comme des spans imbriqués. On voit d'un coup d'œil tout l'arbre des décisions, avec les durées et les coûts.
+
+17
+00:01:24,268 --> 00:01:28,772
+Pas besoin de réinventer : il existe un standard, et des outils.
+
+18
+00:01:29,272 --> 00:01:38,919
+OpenTelemetry, le standard ouvert des traces, propose des conventions dédiées à l'IA générative : des attributs standard pour le modèle, les tokens, les outils.
+
+19
+00:01:39,419 --> 00:01:45,026
+Tes outils actuels, comme Jaeger, Grafana ou Datadog, peuvent recevoir ces traces.
+
+20
+00:01:45,526 --> 00:01:56,148
+Des outils spécialisés pour les LLM, comme Langfuse, LangSmith ou Phoenix, ajoutent une vue par conversation, le suivi des coûts, et le lien avec les évaluations.
+
+21
+00:01:56,648 --> 00:02:04,077
+Et en Java, Spring AI publie automatiquement des observations Micrometer : traces et métriques, sans écrire de code.
+
+22
+00:02:04,927 --> 00:02:11,114
+Voici comment tracer l'exécution d'un outil avec OpenTelemetry. On ouvre un span, nommé d'après l'outil.
+
+23
+00:02:11,614 --> 00:02:17,302
+On enregistre son nom et ses arguments, après avoir masqué les données sensibles, et tronqué.
+
+24
+00:02:17,802 --> 00:02:25,022
+En cas de succès, on note la taille du résultat. En cas d'erreur, on enregistre l'exception, et le statut d'erreur.
+
+25
+00:02:25,522 --> 00:02:31,314
+Et on ferme toujours le span. On fait de même pour chaque appel au modèle, avec le nombre de tokens.
+
+26
+00:02:32,164 --> 00:02:37,446
+À partir des traces, on construit un tableau de bord. Voici les indicateurs essentiels.
+
+27
+00:02:37,946 --> 00:02:44,284
+La qualité : le taux de réussite des tâches, et les retours des utilisateurs, comme un pouce levé ou baissé.
+
+28
+00:02:44,784 --> 00:02:50,623
+Le coût : par tâche, par jour, et par utilisateur. Une dérive se voit tout de suite.
+
+29
+00:02:51,123 --> 00:02:57,333
+La performance : la latence médiane et au quatre-vingt-quinzième centile, et le nombre moyen de tours.
+
+30
+00:02:57,833 --> 00:03:04,926
+Et la fiabilité : le taux d'erreur par outil, les erreurs d'API, et le nombre de fois où la limite de tours est atteinte.
+
+31
+00:03:05,776 --> 00:03:09,154
+Voyons comment une trace permet de résoudre un vrai problème.
+
+32
+00:03:09,654 --> 00:03:14,936
+On ouvre la trace de la conversation. On voit l'appel d'outil : la date demandée est le dix février.
+
+33
+00:03:15,436 --> 00:03:22,239
+L'utilisateur avait écrit zéro deux barre dix, pour le deux octobre. Le modèle l'a lu au format américain, mois puis jour.
+
+34
+00:03:22,739 --> 00:03:29,089
+La correction : préciser, dans la description de l'outil, que l'utilisateur écrit les dates au format français.
+
+35
+00:03:29,589 --> 00:03:37,808
+Et pour que le problème ne revienne jamais, on ajoute un cas au jeu d'évaluation. Trace, correction, évaluation : c'est la boucle vertueuse.
+
+36
+00:03:38,658 --> 00:03:44,985
+Pour déboguer efficacement, classe chaque erreur. La cause est presque toujours dans l'une de ces quatre familles.
+
+37
+00:03:45,485 --> 00:03:49,826
+Le prompt : une consigne ambiguë, ou une règle manquante.
+
+38
+00:03:50,326 --> 00:03:57,999
+Les outils : une description floue, un résultat trop volumineux, ou un message d'erreur illisible. C'est souvent ici.
+
+39
+00:03:58,499 --> 00:04:03,537
+Le contexte : une information manquante, ou noyée dans un contexte trop chargé.
+
+40
+00:04:04,037 --> 00:04:10,723
+Et le modèle : la tâche est trop difficile pour lui. Il faut un modèle plus capable, ou découper la tâche.
+
+41
+00:04:11,573 --> 00:04:17,052
+Attention : les traces contiennent tout ce que voient les utilisateurs et l'agent. Elles doivent être protégées.
+
+42
+00:04:17,552 --> 00:04:22,973
+Masque les données sensibles avant l'enregistrement : IBAN, adresses e-mail, noms.
+
+43
+00:04:23,473 --> 00:04:27,849
+Limite l'accès : seules les personnes habilitées peuvent lire les conversations.
+
+44
+00:04:28,349 --> 00:04:32,679
+Et limite la durée de conservation, en conformité avec le RGPD.
+
+45
+00:04:33,529 --> 00:04:35,029
+Faisons le point.
+
+46
+00:04:35,529 --> 00:04:39,417
+On trace chaque appel au modèle et à chaque outil, avec les versions.
+
+47
+00:04:39,917 --> 00:04:43,678
+Des traces imbriquées, au standard OpenTelemetry.
+
+48
+00:04:44,178 --> 00:04:48,635
+Un tableau de bord : qualité, coût, performance, fiabilité.
+
+49
+00:04:49,135 --> 00:04:53,697
+Chaque erreur vient du prompt, d'un outil, du contexte, ou du modèle.
+
+50
+00:04:54,197 --> 00:04:56,727
+Et chaque bug devient un cas d'évaluation.
+
+51
+00:04:57,577 --> 00:04:59,077
+À toi de jouer.
+
+52
+00:04:59,577 --> 00:05:04,940
+Instrumente ton agent avec OpenTelemetry, ou Micrometer si tu es en Spring AI.
+
+53
+00:05:05,440 --> 00:05:08,713
+Lance Jaeger ou Langfuse en local, avec Docker.
+
+54
+00:05:09,213 --> 00:05:13,009
+Provoque un échec, retrouve-le dans les traces, et classe sa cause.
+
+55
+00:05:13,509 --> 00:05:16,457
+Et affiche le coût par requête dans un tableau de bord.
+
+56
+00:05:17,307 --> 00:05:20,418
+Dans le module seize, on parle de sécurité.
+
+57
+00:05:20,918 --> 00:05:28,278
+Injection de prompt, permissions des outils, validation humaine : on va attaquer notre propre agent, puis le protéger.

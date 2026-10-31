@@ -1,0 +1,271 @@
+1
+00:00:00,300 --> 00:00:04,107
+Module 3 : Prompt engineering pour agents.
+
+2
+00:00:04,607 --> 00:00:06,615
+Le modèle ne sait que ce que tu lui dis.
+
+3
+00:00:07,115 --> 00:00:13,999
+Dans ce module, on apprend à écrire des instructions claires, et à obtenir des réponses qu'un programme peut exploiter.
+
+4
+00:00:14,849 --> 00:00:21,721
+Pour un développeur, voici la bonne façon de voir les choses : le prompt est le code source du comportement de ton agent.
+
+5
+00:00:22,221 --> 00:00:28,733
+Il se versionne, se teste, se relit en revue de code, et un bug dans le prompt produit un bug dans l'agent.
+
+6
+00:00:29,583 --> 00:00:33,193
+Un bon prompt système contient généralement quatre parties.
+
+7
+00:00:33,693 --> 00:00:37,790
+Un : le rôle. Qui est l'agent, et pour qui il travaille.
+
+8
+00:00:38,290 --> 00:00:44,013
+Deux : le contexte et l'objectif. Ce qu'il doit accomplir, et pourquoi c'est important.
+
+9
+00:00:44,513 --> 00:00:50,073
+Trois : les règles. Ce qu'il doit faire, ce qu'il doit éviter, et quand il doit demander de l'aide.
+
+10
+00:00:50,573 --> 00:00:57,132
+Quatre : le format de sortie. La longueur, la langue, la structure, ou le JSON attendu.
+
+11
+00:00:57,982 --> 00:01:06,654
+Voici un exemple concret, pour l'assistant de notre projet fil rouge. La première phrase donne le rôle. Puis viennent le contexte et les règles.
+
+12
+00:01:07,154 --> 00:01:14,781
+Remarque les balises entre chevrons : elles séparent clairement les sections. Les modèles les comprennent très bien, et elles évitent toute ambiguïté.
+
+13
+00:01:15,281 --> 00:01:18,322
+Enfin, le format attendu est précisé à la fin.
+
+14
+00:01:19,172 --> 00:01:22,375
+Voici les règles qui font la plus grande différence.
+
+15
+00:01:22,875 --> 00:01:24,375
+Sois explicite.
+
+16
+00:01:24,875 --> 00:01:31,457
+Le modèle ne devine pas ce que tu as en tête : écris-le, comme pour un nouveau collègue brillant mais qui ne connaît pas ton projet.
+
+17
+00:01:31,957 --> 00:01:37,715
+Explique le pourquoi d'une règle. Un modèle qui comprend la raison applique la règle bien plus intelligemment.
+
+18
+00:01:38,215 --> 00:01:45,563
+Dis quoi faire, plutôt que quoi ne pas faire. Écris : réponds en paragraphes, plutôt que : n'utilise pas de listes.
+
+19
+00:01:46,063 --> 00:01:50,753
+Structure ton prompt avec des balises ou des titres, surtout quand il contient des documents.
+
+20
+00:01:51,253 --> 00:01:57,742
+Et avec de longs documents, place-les en haut, et la question à la fin : la qualité des réponses s'en trouve souvent améliorée.
+
+21
+00:01:58,592 --> 00:02:02,956
+Comparons un prompt vague et un prompt précis pour la même tâche.
+
+22
+00:02:03,456 --> 00:02:08,413
+La consigne vague dit : résume ce ticket. La consigne précise dit pour qui.
+
+23
+00:02:08,913 --> 00:02:14,485
+Elle précise aussi ce qui compte : le problème, l'impact client, et la prochaine action.
+
+24
+00:02:14,985 --> 00:02:18,804
+Et le format : trois puces, quinze mots maximum chacune.
+
+25
+00:02:19,304 --> 00:02:25,805
+Résultat : le premier varie d'un appel à l'autre, le second est stable et directement utilisable.
+
+26
+00:02:26,655 --> 00:02:32,529
+Une technique très efficace : montrer des exemples. On parle de few-shot prompting.
+
+27
+00:02:33,029 --> 00:02:40,075
+Montrer vaut mieux que décrire. Deux à cinq exemples d'entrées et de sorties attendues valent souvent mieux qu'un long paragraphe.
+
+28
+00:02:40,575 --> 00:02:44,684
+Choisis des exemples variés, qui couvrent les cas normaux et les cas limites.
+
+29
+00:02:45,184 --> 00:02:51,476
+Attention : le modèle imite très fortement. Des exemples trop semblables produisent des réponses clonées.
+
+30
+00:02:51,976 --> 00:02:56,549
+Et entoure-les de balises exemple, pour que le modèle les distingue bien de la tâche réelle.
+
+31
+00:02:57,399 --> 00:03:01,752
+Pour un agent, la réponse n'est pas lue par un humain, mais par ton code.
+
+32
+00:03:02,252 --> 00:03:05,711
+Il faut donc des sorties structurées, en général du JSON.
+
+33
+00:03:06,211 --> 00:03:12,154
+Ton code doit pouvoir lire un champ, une liste ou un booléen, sans avoir à interpréter une phrase.
+
+34
+00:03:12,654 --> 00:03:19,166
+On décrit la structure attendue avec un schéma JSON : les types, les champs obligatoires, les valeurs autorisées.
+
+35
+00:03:19,666 --> 00:03:25,528
+La plupart des API proposent aujourd'hui un mode qui force le modèle à produire un JSON conforme à ce schéma.
+
+36
+00:03:26,028 --> 00:03:33,341
+Mais valide toujours côté code, avec Zod en TypeScript ou Bean Validation en Java, et prévois un nouvel essai en cas d'erreur.
+
+37
+00:03:34,191 --> 00:03:36,199
+Voici le principe en TypeScript.
+
+38
+00:03:36,699 --> 00:03:44,337
+On décrit le ticket attendu avec Zod : un titre, une priorité parmi quatre valeurs, un composant, et un résumé court.
+
+39
+00:03:44,837 --> 00:03:50,606
+On transforme ce schéma en JSON Schema, qu'on place dans le prompt, avec une température de zéro.
+
+40
+00:03:51,106 --> 00:03:58,094
+Puis on valide la réponse avec la méthode parse. Si le JSON est invalide, une erreur est levée, et on peut réessayer.
+
+41
+00:03:58,594 --> 00:04:03,864
+Le code exact du mode structuré dépend du fournisseur, mais le principe reste le même.
+
+42
+00:04:04,714 --> 00:04:09,032
+Pour les tâches complexes, laisse le modèle réfléchir avant de répondre.
+
+43
+00:04:09,532 --> 00:04:17,391
+Demande-lui d'analyser le problème étape par étape avant de donner sa réponse finale. La qualité augmente nettement sur les problèmes difficiles.
+
+44
+00:04:17,891 --> 00:04:23,753
+Beaucoup de modèles proposent aussi un mode de réflexion intégré, avec un budget de tokens dédié au raisonnement.
+
+45
+00:04:24,253 --> 00:04:30,359
+Le prix à payer : plus de tokens et plus de latence. Réserve-le aux tâches qui en ont vraiment besoin.
+
+46
+00:04:31,209 --> 00:04:36,595
+Un prompt d'agent a des besoins particuliers, car l'agent agit seul, en plusieurs étapes.
+
+47
+00:04:37,095 --> 00:04:41,134
+Il faut expliquer quand utiliser chaque outil, et pas seulement donner son nom.
+
+48
+00:04:41,634 --> 00:04:46,242
+Il faut définir quand s'arrêter : qu'est-ce que terminé veut dire pour cette tâche ?
+
+49
+00:04:46,742 --> 00:04:51,699
+Il faut dire quoi faire en cas d'erreur : réessayer, changer d'approche, ou demander à l'humain.
+
+50
+00:04:52,199 --> 00:04:57,852
+Et il faut lister les actions qui demandent une validation humaine : tout ce qui est irréversible ou coûteux.
+
+51
+00:04:58,702 --> 00:05:03,101
+Un bon prompt ne s'écrit pas du premier coup. On l'améliore avec méthode.
+
+52
+00:05:03,601 --> 00:05:09,730
+Constitue dès le début un petit jeu de cas de test : dix à vingt entrées représentatives, avec le résultat attendu.
+
+53
+00:05:10,230 --> 00:05:14,594
+Change une seule chose à la fois, et mesure l'effet sur tout le jeu de test.
+
+54
+00:05:15,094 --> 00:05:20,132
+Lis attentivement les réponses ratées : elles te disent ce qui manque dans le prompt.
+
+55
+00:05:20,632 --> 00:05:27,562
+Et versionne tes prompts dans Git, avec ton code. On automatisera tout cela dans le module quatorze, sur l'évaluation.
+
+56
+00:05:28,412 --> 00:05:29,912
+Faisons le point.
+
+57
+00:05:30,412 --> 00:05:36,123
+Un prompt système contient un rôle, un objectif, des règles, et un format de sortie.
+
+58
+00:05:36,623 --> 00:05:40,790
+Il doit être explicite, structuré, et expliquer le pourquoi.
+
+59
+00:05:41,290 --> 00:05:44,192
+Des exemples variés valent mieux qu'une longue description.
+
+60
+00:05:44,692 --> 00:05:49,254
+Pour un programme, on demande du JSON avec un schéma, et on le valide toujours.
+
+61
+00:05:49,754 --> 00:05:54,107
+Et on améliore le prompt avec méthode, grâce à des cas de test.
+
+62
+00:05:54,957 --> 00:05:56,457
+À toi de jouer.
+
+63
+00:05:56,957 --> 00:06:01,066
+Prends dix vrais mails ou tickets de ton projet, anonymisés.
+
+64
+00:06:01,566 --> 00:06:05,652
+Écris un schéma Zod avec une priorité, un composant, et un résumé.
+
+65
+00:06:06,152 --> 00:06:11,190
+Fais extraire les dix par le modèle, valide les résultats, et compte les erreurs.
+
+66
+00:06:11,690 --> 00:06:16,728
+Améliore le prompt jusqu'à obtenir dix sur dix, en notant chaque changement et son effet.
+
+67
+00:06:17,578 --> 00:06:24,450
+Le niveau un est terminé. Dans le module quatre, on donne enfin des mains à notre modèle : le tool calling.
+
+68
+00:06:24,950 --> 00:06:29,338
+C'est le mécanisme qui transforme un LLM qui parle en un agent qui agit.

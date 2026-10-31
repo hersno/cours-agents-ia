@@ -1,0 +1,239 @@
+1
+00:00:00,300 --> 00:00:03,074
+Module 14 : l'évaluation des agents.
+
+2
+00:00:03,574 --> 00:00:09,645
+Bienvenue dans le niveau quatre. Pour passer d'une démo qui impressionne à un produit fiable, il faut mesurer.
+
+3
+00:00:10,145 --> 00:00:12,652
+C'est le rôle des évaluations, les évals.
+
+4
+00:00:13,502 --> 00:00:19,144
+Si tu ne retiens qu'une chose du niveau quatre : un agent sans évaluations, c'est du code sans tests.
+
+5
+00:00:19,644 --> 00:00:26,806
+Ça marche sur les trois exemples de la démo. Puis ça casse en production, sans que personne ne sache pourquoi, ni depuis quand.
+
+6
+00:00:27,656 --> 00:00:32,473
+Pourquoi les évaluations sont-elles encore plus importantes pour un agent que pour du code classique ?
+
+7
+00:00:32,973 --> 00:00:38,371
+Parce qu'un agent est non déterministe : la même entrée ne donne pas toujours le même résultat.
+
+8
+00:00:38,871 --> 00:00:44,304
+Parce que tout est couplé : changer un mot du prompt peut casser un cas qui fonctionnait très bien.
+
+9
+00:00:44,804 --> 00:00:49,795
+Parce que les modèles changent : un nouveau modèle est meilleur en moyenne, mais l'est-il pour tes cas ?
+
+10
+00:00:50,295 --> 00:00:57,690
+Et parce qu'on veut décider sur des chiffres : quatre-vingt-sept pour cent de réussite, puis quatre-vingt-treize, plutôt que : ça a l'air mieux.
+
+11
+00:00:58,540 --> 00:01:03,206
+Tout commence par un jeu d'évaluation : une liste de cas, avec ce qu'on attend.
+
+12
+00:01:03,706 --> 00:01:08,651
+Des cas réels, tirés des vraies demandes des utilisateurs. Ce sont les plus précieux.
+
+13
+00:01:09,151 --> 00:01:14,734
+Des cas limites : une demande ambiguë, une information manquante, un outil en panne.
+
+14
+00:01:15,234 --> 00:01:19,912
+Des cas adverses : des tentatives de détournement, des demandes d'actions interdites.
+
+15
+00:01:20,412 --> 00:01:27,807
+Et commence petit : vingt cas bien choisis valent infiniment mieux que zéro. Chaque bug trouvé en production devient un nouveau cas.
+
+16
+00:01:28,657 --> 00:01:33,625
+Une fois l'agent exécuté sur les cas, qui décide si le résultat est bon ? Trois options.
+
+17
+00:01:34,125 --> 00:01:43,377
+Le code : parfait pour les résultats vérifiables, comme un JSON, des tests qui passent, une valeur exacte. Rapide, gratuit, fiable.
+
+18
+00:01:43,877 --> 00:01:45,815
+Mais il ne sait pas juger un texte.
+
+19
+00:01:46,315 --> 00:01:54,093
+Un LLM juge : il évalue la qualité, le ton, ou l'exactitude d'une réponse. Mais il doit être calibré, et il a des biais.
+
+20
+00:01:54,593 --> 00:02:00,304
+Un humain : indispensable pour les cas subtils, et pour calibrer le juge. Mais lent et cher.
+
+21
+00:02:01,154 --> 00:02:04,299
+Pour un agent, on ne mesure pas seulement la réponse finale.
+
+22
+00:02:04,799 --> 00:02:10,986
+Le résultat : la tâche est-elle accomplie, la réponse est-elle exacte ? C'est la mesure principale.
+
+23
+00:02:11,486 --> 00:02:17,696
+La trajectoire : a-t-il utilisé les bons outils ? En combien de tours ? A-t-il fait des étapes inutiles ?
+
+24
+00:02:18,196 --> 00:02:23,292
+Le coût et la latence : combien de tokens, d'euros, et de secondes par tâche.
+
+25
+00:02:23,792 --> 00:02:29,143
+Et la sécurité : a-t-il refusé ce qu'il devait refuser, et demandé une validation quand il le fallait ?
+
+26
+00:02:29,993 --> 00:02:36,714
+Voici un banc d'évaluation minimal, en quelques lignes. Chaque cas a une entrée, et une fonction de vérification.
+
+27
+00:02:37,214 --> 00:02:42,519
+Elle peut porter sur le texte, sur les outils utilisés, ou sur le nombre de tours.
+
+28
+00:02:43,019 --> 00:02:50,030
+Remarque le deuxième cas : on vérifie que l'agent n'a pas remboursé, même sous pression. C'est un test de sécurité.
+
+29
+00:02:50,530 --> 00:02:54,906
+Et chaque cas est exécuté trois fois, car l'agent est non déterministe.
+
+30
+00:02:55,406 --> 00:02:59,910
+On obtient un taux de réussite par cas, un coût moyen, et un nombre moyen de tours.
+
+31
+00:03:00,760 --> 00:03:07,005
+Pour juger une réponse en texte libre, on utilise un LLM comme juge. Voici comment le rendre fiable.
+
+32
+00:03:07,505 --> 00:03:14,249
+Une grille précise : des critères explicites et séparés, par exemple : la réponse cite-t-elle une source ?
+
+33
+00:03:14,749 --> 00:03:20,274
+Des réponses courtes : oui ou non, ou une échelle de un à trois, avec une justification d'abord.
+
+34
+00:03:20,774 --> 00:03:25,150
+Une référence : quand on connaît la bonne réponse, on la donne au juge.
+
+35
+00:03:25,650 --> 00:03:32,917
+Et calibrer : on compare le juge avec un humain sur une cinquantaine de cas. S'ils ne sont pas d'accord, on améliore la grille.
+
+36
+00:03:33,417 --> 00:03:37,456
+Attention aux biais connus : les juges préfèrent souvent les réponses longues.
+
+37
+00:03:38,306 --> 00:03:41,997
+Les évaluations s'inscrivent dans une boucle d'amélioration continue.
+
+38
+00:03:42,497 --> 00:03:47,070
+On observe la production : les échecs, les plaintes, les cas bizarres.
+
+39
+00:03:47,570 --> 00:03:49,926
+On ajoute ces cas au jeu d'évaluation.
+
+40
+00:03:50,426 --> 00:03:53,746
+On modifie le prompt, un outil, ou le modèle.
+
+41
+00:03:54,246 --> 00:03:57,415
+On mesure, avant et après, sur tout le jeu.
+
+42
+00:03:57,915 --> 00:04:01,560
+Et on déploie seulement si ça progresse, sans régression ailleurs.
+
+43
+00:04:02,410 --> 00:04:05,857
+Comme les tests, les évaluations s'automatisent dans la CI.
+
+44
+00:04:06,357 --> 00:04:11,488
+Elles se lancent à chaque pull request qui touche un prompt, un outil, ou le modèle.
+
+45
+00:04:11,988 --> 00:04:16,886
+Avec des seuils : la pull request échoue si le taux de réussite baisse de plus de deux points.
+
+46
+00:04:17,386 --> 00:04:22,760
+À coût maîtrisé : un sous-ensemble rapide à chaque pull request, et le jeu complet chaque nuit.
+
+47
+00:04:23,260 --> 00:04:28,344
+Et historisées : on suit l'évolution de la réussite, du coût et de la latence dans le temps.
+
+48
+00:04:29,194 --> 00:04:30,694
+Faisons le point.
+
+49
+00:04:31,194 --> 00:04:34,246
+Pas d'agent en production sans évaluations.
+
+50
+00:04:34,746 --> 00:04:39,006
+Un jeu de cas réels, limites et adverses, qui grandit avec le temps.
+
+51
+00:04:39,506 --> 00:04:44,184
+On note avec du code quand c'est vérifiable, avec un LLM juge calibré sinon.
+
+52
+00:04:44,684 --> 00:04:48,596
+On mesure le résultat, la trajectoire, le coût, et la sécurité.
+
+53
+00:04:49,096 --> 00:04:53,182
+Et on fait plusieurs essais par cas, avec des seuils en intégration continue.
+
+54
+00:04:54,032 --> 00:04:55,532
+À toi de jouer.
+
+55
+00:04:56,032 --> 00:05:01,499
+Écris vingt cas pour ton agent fil rouge, dont cinq cas limites et trois cas adverses.
+
+56
+00:05:01,999 --> 00:05:05,388
+Mesure le taux de réussite, sur trois essais par cas.
+
+57
+00:05:05,888 --> 00:05:11,518
+Ajoute un LLM juge pour cinq cas en texte libre, et calibre-le avec ton propre jugement.
+
+58
+00:05:12,018 --> 00:05:16,278
+Puis branche le tout dans ta CI, avec GitHub Actions ou GitLab CI.
+
+59
+00:05:17,128 --> 00:05:22,363
+Dans le module quinze, on apprend à voir ce que fait l'agent en production : l'observabilité.
+
+60
+00:05:22,863 --> 00:05:28,296
+Traces, journaux d'outils, OpenTelemetry, et une méthode pour déboguer un agent.

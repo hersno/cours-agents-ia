@@ -1,0 +1,243 @@
+1
+00:00:00,300 --> 00:00:03,213
+Module 4 : Le tool calling.
+
+2
+00:00:03,713 --> 00:00:05,326
+Bienvenue dans le niveau deux.
+
+3
+00:00:05,826 --> 00:00:13,348
+Dans ce module, on découvre le mécanisme qui permet à un modèle d'agir sur le monde : l'appel d'outils, ou tool calling.
+
+4
+00:00:14,198 --> 00:00:19,166
+Commençons par dissiper un malentendu. Le modèle n'exécute jamais l'action lui-même.
+
+5
+00:00:19,666 --> 00:00:26,422
+Il demande à ton code de l'exécuter, en produisant un message structuré : le nom de l'outil et ses paramètres.
+
+6
+00:00:26,922 --> 00:00:28,999
+C'est ton code qui garde le contrôle.
+
+7
+00:00:29,849 --> 00:00:32,205
+Voici comment se déroule un appel d'outil.
+
+8
+00:00:32,705 --> 00:00:37,534
+Un : tu envoies les messages, avec la liste des outils disponibles et leur description.
+
+9
+00:00:38,034 --> 00:00:44,001
+Deux : au lieu de répondre en texte, le modèle répond par une demande d'outil, avec le nom et les arguments.
+
+10
+00:00:44,501 --> 00:00:51,106
+Trois : ton code exécute la vraie fonction : un appel d'API, une requête en base, un calcul.
+
+11
+00:00:51,606 --> 00:00:55,703
+Quatre : tu renvoies le résultat au modèle, dans un nouveau message.
+
+12
+00:00:56,203 --> 00:01:03,447
+Cinq : le modèle répond à l'utilisateur, ou demande un autre outil. Et là, on a les ingrédients d'une boucle agentique.
+
+13
+00:01:04,297 --> 00:01:11,216
+Voici comment on déclare un outil. Il a trois parties : un nom, une description, et un schéma JSON de ses paramètres.
+
+14
+00:01:11,716 --> 00:01:15,929
+La description est la plus importante : elle dit au modèle quand utiliser l'outil.
+
+15
+00:01:16,429 --> 00:01:21,513
+Les paramètres sont typés, documentés, et on peut restreindre les valeurs avec une énumération.
+
+16
+00:01:22,013 --> 00:01:25,309
+Il suffit ensuite de passer la liste des outils dans l'appel.
+
+17
+00:01:25,809 --> 00:01:30,510
+Ici, à la question sur le parapluie, le modèle va demander la météo de Lyon.
+
+18
+00:01:31,360 --> 00:01:40,717
+Quand le modèle veut un outil, la raison d'arrêt vaut tool use, et la réponse contient un bloc avec l'identifiant de l'appel, le nom de l'outil, et ses arguments.
+
+19
+00:01:41,217 --> 00:01:43,387
+Ton code exécute la vraie fonction.
+
+20
+00:01:43,887 --> 00:01:51,816
+Puis on rappelle le modèle avec tout l'historique : la question, la demande d'outil, et le résultat, rattaché à l'appel par son identifiant.
+
+21
+00:01:52,316 --> 00:01:56,738
+Le modèle peut alors répondre à l'utilisateur en s'appuyant sur des données réelles.
+
+22
+00:01:57,588 --> 00:02:02,916
+Le modèle choisit ses outils uniquement à partir de leur description. C'est là que tout se joue.
+
+23
+00:02:03,416 --> 00:02:10,381
+Un nom explicite, avec un verbe et un objet : search orders, plutôt que tool deux.
+
+24
+00:02:10,881 --> 00:02:15,733
+Une description qui dit à quoi sert l'outil, quand l'utiliser, et aussi quand ne pas l'utiliser.
+
+25
+00:02:16,233 --> 00:02:24,545
+Des paramètres documentés : le format attendu, un exemple, l'unité. Par exemple : une date au format année, mois, jour.
+
+26
+00:02:25,045 --> 00:02:31,290
+Et des choix fermés avec une énumération, dès que les valeurs possibles sont connues. Le modèle se trompe beaucoup moins.
+
+27
+00:02:32,140 --> 00:02:37,700
+Le résultat d'un outil entre dans le contexte du modèle. Il doit donc être utile, et compact.
+
+28
+00:02:38,200 --> 00:02:43,226
+Renvoie les champs utiles, pas l'objet complet avec deux cents champs : chaque token compte.
+
+29
+00:02:43,726 --> 00:02:47,568
+Rends-le lisible : des noms de champs clairs, et les unités.
+
+30
+00:02:48,068 --> 00:02:53,199
+Borne sa taille : tronque ou pagine les longues listes, et indique-le dans le résultat.
+
+31
+00:02:53,699 --> 00:02:59,573
+Et renvoie les erreurs comme des messages exploitables : ville inconnue, essaie avec le nom complet.
+
+32
+00:03:00,073 --> 00:03:05,076
+Le modèle pourra corriger son appel tout seul, ce qu'il ne fera pas avec une stack trace.
+
+33
+00:03:05,926 --> 00:03:10,372
+Voyons un agent qui dispose de deux outils : la météo, et l'agenda.
+
+34
+00:03:10,872 --> 00:03:17,071
+Le modèle peut demander plusieurs outils dans la même réponse. Ici, il demande d'abord l'agenda de demain.
+
+35
+00:03:17,571 --> 00:03:23,851
+Et, en même temps, la météo. Ces deux appels sont indépendants, ton code peut les exécuter en parallèle.
+
+36
+00:03:24,351 --> 00:03:27,334
+Les deux résultats sont renvoyés ensemble.
+
+37
+00:03:27,834 --> 00:03:34,950
+Et le modèle combine les deux pour répondre. Remarque : il a déduit la ville et la date tout seul, à partir du contexte.
+
+38
+00:03:35,800 --> 00:03:41,755
+On peut contrôler la façon dont le modèle utilise les outils, grâce au paramètre tool choice.
+
+39
+00:03:42,255 --> 00:03:47,386
+En mode auto, le modèle décide s'il utilise un outil. C'est le cas normal d'un agent.
+
+40
+00:03:47,886 --> 00:03:51,705
+En mode any, il doit obligatoirement utiliser un des outils.
+
+41
+00:03:52,205 --> 00:03:56,047
+En mode tool, on lui impose un outil précis.
+
+42
+00:03:56,547 --> 00:04:03,164
+Astuce : c'est une excellente façon d'obtenir un JSON structuré fiable, puisque les arguments respectent le schéma.
+
+43
+00:04:03,664 --> 00:04:07,088
+Et en mode none, il ne peut utiliser aucun outil.
+
+44
+00:04:07,938 --> 00:04:14,787
+Concevoir les outils d'un agent, c'est concevoir une API, mais pour un utilisateur très particulier : le modèle.
+
+45
+00:04:15,287 --> 00:04:21,555
+Peu d'outils, mais bons. Une dizaine d'outils clairs vaut mieux que quatre-vingts outils qui se recoupent et sèment la confusion.
+
+46
+00:04:22,055 --> 00:04:28,277
+Des outils orientés tâche : schedule meeting, plutôt que quatre appels de bas niveau à enchaîner.
+
+47
+00:04:28,777 --> 00:04:35,533
+Sépare la lecture de l'écriture : les outils qui modifient des données doivent être identifiés, contrôlés, et parfois confirmés.
+
+48
+00:04:36,033 --> 00:04:41,814
+Et rends-les robustes : arguments validés, idempotents quand c'est possible, avec des délais d'expiration.
+
+49
+00:04:42,664 --> 00:04:44,164
+Faisons le point.
+
+50
+00:04:44,664 --> 00:04:49,237
+Le modèle demande, et ton code exécute. Tu gardes toujours le contrôle.
+
+51
+00:04:49,737 --> 00:04:53,974
+Un outil, c'est un nom, une description, et un schéma JSON.
+
+52
+00:04:54,474 --> 00:04:58,444
+La description décide de quand l'outil est utilisé : soigne-la.
+
+53
+00:04:58,944 --> 00:05:02,960
+Les résultats doivent être compacts, et les erreurs exploitables.
+
+54
+00:05:03,460 --> 00:05:07,314
+Et on préfère peu d'outils, orientés tâche, et robustes.
+
+55
+00:05:08,164 --> 00:05:09,664
+À toi de jouer.
+
+56
+00:05:10,164 --> 00:05:17,083
+Déclare deux outils : get weather, branché sur une API météo publique, et calculate, pour les calculs.
+
+57
+00:05:17,583 --> 00:05:20,717
+Gère la demande d'outil, et renvoie le résultat.
+
+58
+00:05:21,217 --> 00:05:25,686
+Teste avec : quelle est la différence de température entre Paris et Nice ?
+
+59
+00:05:26,186 --> 00:05:32,129
+Enfin, fais échouer un outil exprès, avec un message d'erreur clair, et observe si le modèle s'adapte.
+
+60
+00:05:32,979 --> 00:05:39,085
+Dans le module cinq, on enchaîne les appels d'outils automatiquement : c'est la boucle agentique.
+
+61
+00:05:39,585 --> 00:05:43,764
+On l'écrira à la main, en une centaine de lignes, avec ses garde-fous.

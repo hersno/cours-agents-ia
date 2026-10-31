@@ -1,0 +1,279 @@
+1
+00:00:00,300 --> 00:00:03,109
+Module 2 : Comment fonctionne un LLM.
+
+2
+00:00:03,609 --> 00:00:05,477
+Le LLM est le cerveau de l'agent.
+
+3
+00:00:05,977 --> 00:00:13,801
+Pour bien construire un agent, il faut comprendre ce qui se passe sous le capot : tokens, contexte, température, et hallucinations.
+
+4
+00:00:14,651 --> 00:00:20,513
+Retenez une seule idée de ce module : un LLM est une machine à prédire le prochain token.
+
+5
+00:00:21,013 --> 00:00:28,663
+Raisonner, résumer, écrire du code ou appeler un outil : tout cela n'est qu'une suite de prédictions, un token après l'autre.
+
+6
+00:00:29,513 --> 00:00:33,042
+Voyons ce qui se passe quand tu envoies un message à un modèle.
+
+7
+00:00:33,542 --> 00:00:36,107
+D'abord, le modèle reçoit ton texte.
+
+8
+00:00:36,607 --> 00:00:41,517
+Ce texte est découpé en tokens, des morceaux de mots, convertis en nombres.
+
+9
+00:00:42,017 --> 00:00:47,659
+Le réseau de neurones calcule, pour chaque token possible, la probabilité qu'il soit le suivant.
+
+10
+00:00:48,159 --> 00:00:51,339
+Un token est choisi selon ces probabilités.
+
+11
+00:00:51,839 --> 00:00:57,817
+Il est ajouté au texte, et tout recommence, jusqu'à un token de fin ou une limite de longueur.
+
+12
+00:00:58,317 --> 00:01:05,863
+Conséquence pratique : la génération est séquentielle. Plus la réponse est longue, plus elle prend de temps, et plus elle coûte.
+
+13
+00:01:06,713 --> 00:01:10,718
+Le token est l'unité de base. C'est avec lui qu'on mesure tout.
+
+14
+00:01:11,218 --> 00:01:17,904
+Un token, c'est un morceau de mot : en moyenne trois à quatre caractères. Un mot courant peut faire un ou deux tokens.
+
+15
+00:01:18,404 --> 00:01:23,175
+Le français et le code produisent souvent plus de tokens que l'anglais, pour le même contenu.
+
+16
+00:01:23,675 --> 00:01:30,350
+Les API facturent au token, avec un prix pour l'entrée et un autre, plus élevé, pour la sortie.
+
+17
+00:01:30,850 --> 00:01:38,477
+Et toutes les limites s'expriment en tokens : la taille du contexte, la longueur maximale de la réponse, les quotas par minute.
+
+18
+00:01:39,327 --> 00:01:46,443
+La fenêtre de contexte, c'est tout ce que le modèle voit au moment de répondre. Pour un agent, c'est la ressource la plus précieuse.
+
+19
+00:01:46,943 --> 00:01:53,954
+Elle contient les instructions système, l'historique de la conversation, les documents fournis, et les résultats des outils.
+
+20
+00:01:54,454 --> 00:01:59,271
+Sa taille va de quelques dizaines de milliers à plus d'un million de tokens selon le modèle.
+
+21
+00:01:59,771 --> 00:02:02,847
+Ce qui n'est pas dans le contexte n'existe pas pour le modèle.
+
+22
+00:02:03,347 --> 00:02:07,491
+Il ne voit ni ta base, ni tes fichiers, sauf si tu les y mets.
+
+23
+00:02:07,991 --> 00:02:15,397
+Et plus n'est pas toujours mieux : un contexte énorme coûte plus cher, répond plus lentement, et le modèle peut perdre de vue l'essentiel.
+
+24
+00:02:16,247 --> 00:02:20,658
+Point crucial pour les agents : le modèle n'a pas de mémoire entre deux appels.
+
+25
+00:02:21,158 --> 00:02:25,650
+Chaque appel à l'API repart de zéro. On dit que le modèle est sans état.
+
+26
+00:02:26,150 --> 00:02:31,548
+Pour simuler une conversation, l'application renvoie tout l'historique à chaque nouvel appel.
+
+27
+00:02:32,048 --> 00:02:37,353
+Résultat : l'historique grossit, et chaque tour coûte un peu plus cher que le précédent.
+
+28
+00:02:37,853 --> 00:02:43,576
+Retenez donc ceci : la mémoire d'un agent, ce n'est pas le modèle qui la gère, c'est ton code.
+
+29
+00:02:44,076 --> 00:02:46,362
+On y consacre tout le module six.
+
+30
+00:02:47,212 --> 00:02:52,621
+Un réglage important : la température. Elle contrôle la part de hasard dans le choix du token.
+
+31
+00:02:53,121 --> 00:03:01,235
+Avec une température basse, le modèle choisit presque toujours le token le plus probable. Avec une température haute, il varie davantage.
+
+32
+00:03:01,735 --> 00:03:07,945
+Le résultat est stable et reproductible d'un côté, créatif et imprévisible de l'autre.
+
+33
+00:03:08,445 --> 00:03:17,511
+Pour un agent, de l'extraction ou du code, on préfère une température basse. On la monte pour du brainstorming ou de la rédaction créative.
+
+34
+00:03:18,361 --> 00:03:22,366
+D'où viennent les capacités d'un modèle ? De trois grandes phases d'entraînement.
+
+35
+00:03:22,866 --> 00:03:24,711
+Un : le pré-entraînement.
+
+36
+00:03:25,211 --> 00:03:30,667
+Le modèle lit des milliers de milliards de tokens de textes et de code, et apprend la langue et le monde.
+
+37
+00:03:31,167 --> 00:03:37,795
+Deux : l'ajustement aux instructions. À partir d'exemples, il apprend à suivre une consigne et à répondre utilement.
+
+38
+00:03:38,295 --> 00:03:46,433
+Trois : l'apprentissage par retours. Des humains, ou des règles, notent ses réponses, et il apprend à être utile, honnête et sûr.
+
+39
+00:03:46,933 --> 00:03:49,718
+C'est aussi là qu'il apprend à utiliser des outils.
+
+40
+00:03:50,218 --> 00:03:54,269
+Attention : le modèle ne connaît rien après la date de coupure de ses données.
+
+41
+00:03:54,769 --> 00:03:57,926
+C'est une raison de plus pour donner des outils de recherche à un agent.
+
+42
+00:03:58,776 --> 00:04:05,462
+Le défaut le plus connu des LLM : les hallucinations. Le modèle affirme avec assurance quelque chose de faux.
+
+43
+00:04:05,962 --> 00:04:12,927
+Pourquoi ? Parce qu'il prédit un texte plausible, pas un texte vrai. S'il n'a pas l'information, il comble le vide.
+
+44
+00:04:13,427 --> 00:04:19,788
+Première parade : donne-lui les faits. Mets les bons documents dans le contexte, ou donne-lui des outils pour les trouver.
+
+45
+00:04:20,288 --> 00:04:27,137
+Deuxième parade : autorise-le à douter. Écris explicitement dans tes instructions : si tu ne sais pas, dis-le.
+
+46
+00:04:27,637 --> 00:04:35,879
+Troisième parade : vérifie. Exige des citations, valide les sorties dans ton code, et mesure la qualité avec des évaluations.
+
+47
+00:04:36,729 --> 00:04:41,918
+Il n'existe pas un seul bon modèle. Les fournisseurs proposent généralement trois gammes.
+
+48
+00:04:42,418 --> 00:04:50,045
+En capacité : le petit modèle gère les tâches simples, le moyen est très bon partout, le grand excelle dans le raisonnement complexe.
+
+49
+00:04:50,545 --> 00:04:55,153
+En vitesse, c'est l'inverse : le petit est très rapide, le grand plus lent.
+
+50
+00:04:55,653 --> 00:04:59,948
+Le coût suit la taille : le grand modèle peut coûter dix fois plus cher que le petit.
+
+51
+00:05:00,448 --> 00:05:09,422
+En pratique : un petit modèle pour classer ou extraire, un moyen pour la plupart des agents, un grand pour planifier ou pour le code difficile.
+
+52
+00:05:09,922 --> 00:05:12,394
+On peut d'ailleurs les combiner dans un même agent.
+
+53
+00:05:13,244 --> 00:05:21,440
+Voici un premier appel à un LLM en TypeScript, avec le SDK d'Anthropic. Les autres fournisseurs fonctionnent de façon très proche.
+
+54
+00:05:21,940 --> 00:05:29,892
+On choisit le modèle, la longueur maximale de la réponse, et la température. Le prompt système donne le rôle et les règles.
+
+55
+00:05:30,392 --> 00:05:35,650
+La liste des messages contient la conversation : ici, une seule question de l'utilisateur.
+
+56
+00:05:36,150 --> 00:05:41,710
+La réponse contient le texte généré, et un objet usage qui indique le nombre de tokens consommés.
+
+57
+00:05:42,210 --> 00:05:45,669
+Pense à le surveiller dès le premier jour : c'est ta facture.
+
+58
+00:05:46,519 --> 00:05:48,019
+Faisons le point.
+
+59
+00:05:48,519 --> 00:05:51,711
+Un LLM prédit le prochain token, un par un.
+
+60
+00:05:52,211 --> 00:05:56,935
+Tout se mesure en tokens : le prix, les limites, la taille du contexte.
+
+61
+00:05:57,435 --> 00:06:01,474
+Le modèle est sans état : la mémoire, c'est ton code qui la gère.
+
+62
+00:06:01,974 --> 00:06:05,061
+Pour un agent, on choisit une température basse.
+
+63
+00:06:05,561 --> 00:06:10,657
+Et contre les hallucinations : donner les faits, autoriser le doute, et vérifier.
+
+64
+00:06:11,507 --> 00:06:13,007
+À toi de jouer.
+
+65
+00:06:13,507 --> 00:06:18,185
+Crée une clé d'API chez un fournisseur de modèles, et lance le code de ce module.
+
+66
+00:06:18,685 --> 00:06:24,350
+Pose la même question cinq fois avec une température de zéro, puis de un, et compare les réponses.
+
+67
+00:06:24,850 --> 00:06:31,153
+Affiche l'objet usage, et calcule le coût exact d'un appel avec la grille tarifaire du fournisseur.
+
+68
+00:06:31,653 --> 00:06:38,177
+Enfin, envoie une deuxième question sans renvoyer l'historique, et vérifie par toi-même que le modèle ne se souvient de rien.
+
+69
+00:06:39,027 --> 00:06:44,808
+Dans le module trois, on apprend à parler au modèle : le prompt engineering pour agents.
+
+70
+00:06:45,308 --> 00:06:53,063
+Prompt système, exemples, et surtout sorties structurées en JSON, indispensables pour qu'un programme exploite les réponses.

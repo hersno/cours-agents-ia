@@ -1,0 +1,251 @@
+1
+00:00:00,300 --> 00:00:02,760
+Module 5 : La boucle agentique.
+
+2
+00:00:03,260 --> 00:00:06,614
+Dans le module précédent, on a fait un appel d'outil à la main.
+
+3
+00:00:07,114 --> 00:00:13,417
+Ici, on automatise : on écrit la boucle qui transforme un modèle avec des outils en véritable agent.
+
+4
+00:00:14,267 --> 00:00:21,058
+Voici une définition très concrète. Un agent, c'est un LLM, des outils, et une boucle while.
+
+5
+00:00:21,558 --> 00:00:28,790
+Tant que le modèle demande des outils, on les exécute et on lui renvoie les résultats. Quand il n'en demande plus, il a terminé.
+
+6
+00:00:29,640 --> 00:00:34,388
+Cette boucle porte un nom : le pattern ReAct, pour raisonner et agir.
+
+7
+00:00:34,888 --> 00:00:39,566
+Raisonner : le modèle analyse la situation et choisit la prochaine action.
+
+8
+00:00:40,066 --> 00:00:42,701
+Agir : il appelle un ou plusieurs outils.
+
+9
+00:00:43,201 --> 00:00:48,297
+Observer : les résultats rejoignent le contexte, et on recommence avec plus d'informations.
+
+10
+00:00:48,797 --> 00:00:52,918
+Bonne nouvelle : les modèles récents sont entraînés pour fonctionner ainsi.
+
+11
+00:00:53,418 --> 00:00:57,945
+Il n'y a rien de magique à programmer, le tool calling fait le travail.
+
+12
+00:00:58,795 --> 00:01:05,725
+Voici une boucle agentique complète, en moins de trente lignes. On initialise les messages avec l'objectif.
+
+13
+00:01:06,225 --> 00:01:14,351
+À chaque tour, on appelle le modèle avec le prompt système, les outils, et tout l'historique, puis on ajoute sa réponse à l'historique.
+
+14
+00:01:14,851 --> 00:01:20,330
+Si la raison d'arrêt n'est pas tool use, le modèle a terminé : on renvoie son texte.
+
+15
+00:01:20,830 --> 00:01:24,556
+Sinon, on exécute tous les outils demandés, en parallèle.
+
+16
+00:01:25,056 --> 00:01:32,137
+Une erreur d'outil n'arrête pas l'agent : elle est renvoyée au modèle avec le drapeau is error, pour qu'il puisse s'adapter.
+
+17
+00:01:32,637 --> 00:01:36,026
+Les résultats sont ajoutés à l'historique, et on recommence.
+
+18
+00:01:36,526 --> 00:01:41,436
+Et si on dépasse le nombre maximal de tours, on s'arrête : c'est le premier garde-fou.
+
+19
+00:01:42,286 --> 00:01:47,393
+La question la plus importante d'une boucle : quand s'arrête-t-elle ? Il faut plusieurs conditions d'arrêt.
+
+20
+00:01:47,893 --> 00:01:52,826
+Un : le modèle a terminé. Il répond sans demander d'outil. C'est l'arrêt normal.
+
+21
+00:01:53,326 --> 00:01:59,130
+Deux : une limite de tours, de dix à cinquante selon la tâche. Au-delà, c'est que quelque chose cloche.
+
+22
+00:01:59,630 --> 00:02:05,144
+Trois : un budget. Un plafond de tokens, de coût, ou de durée pour la tâche.
+
+23
+00:02:05,644 --> 00:02:12,075
+Quatre : le besoin d'un humain. Un outil pour poser une question, ou une action à valider, met la boucle en pause.
+
+24
+00:02:12,925 --> 00:02:19,391
+Un agent rencontre des erreurs en permanence. La question n'est pas de les éviter, mais de bien y réagir.
+
+25
+00:02:19,891 --> 00:02:26,647
+Une erreur d'outil est renvoyée au modèle, avec un message clair. Le plus souvent, il corrige ses arguments et réessaie.
+
+26
+00:02:27,147 --> 00:02:34,495
+Une erreur de l'API, comme une surcharge ou un quota dépassé, se traite par de nouveaux essais avec une attente exponentielle.
+
+27
+00:02:34,995 --> 00:02:41,229
+Les arguments invalides sont détectés par ta validation, avant l'exécution, et l'erreur est renvoyée au modèle.
+
+28
+00:02:41,729 --> 00:02:48,961
+Et attention aux boucles infinies. Si le même appel revient trois fois de suite, il faut arrêter, ou forcer un changement de stratégie.
+
+29
+00:02:49,811 --> 00:02:56,811
+Regardons un agent de code au travail, avec trois outils : lancer les tests, lire un fichier, et modifier un fichier.
+
+30
+00:02:57,311 --> 00:03:00,642
+Premier tour : il lance le test pour voir l'erreur.
+
+31
+00:03:01,142 --> 00:03:05,216
+Il observe un écart d'un centime, à la ligne quarante-deux.
+
+32
+00:03:05,716 --> 00:03:08,792
+Deuxième tour : il lit le fichier du service.
+
+33
+00:03:09,292 --> 00:03:15,932
+Il raisonne : le montant est calculé avec un double, d'où l'erreur d'arrondi. Il faut utiliser BigDecimal.
+
+34
+00:03:16,432 --> 00:03:19,183
+Troisième tour : il modifie le fichier.
+
+35
+00:03:19,683 --> 00:03:23,119
+Quatrième tour : il relance le test pour vérifier.
+
+36
+00:03:23,619 --> 00:03:31,478
+Les tests passent : il répond. Note qu'il a vérifié son travail avant de conclure. C'est un comportement à encourager dans ton prompt.
+
+37
+00:03:32,328 --> 00:03:37,366
+À chaque tour, l'historique grossit. Sur une longue tâche, il faut le maîtriser.
+
+38
+00:03:37,866 --> 00:03:45,388
+D'abord, borne les résultats d'outils dès leur production. Un fichier de dix mille lignes n'a rien à faire dans le contexte.
+
+39
+00:03:45,888 --> 00:03:51,065
+Ensuite, nettoie : remplace les vieux résultats devenus inutiles par un court résumé.
+
+40
+00:03:51,565 --> 00:03:58,414
+Et active le cache de prompt : le début de la conversation ne change pas d'un tour à l'autre, le relire coûte alors beaucoup moins cher.
+
+41
+00:03:58,914 --> 00:04:02,524
+On verra tout cela en détail dans les modules six et dix-sept.
+
+42
+00:04:03,374 --> 00:04:11,047
+Certaines actions ne doivent jamais partir sans validation : envoyer un mail, supprimer un fichier, rembourser un client.
+
+43
+00:04:11,547 --> 00:04:17,014
+Le principe est simple : avant d'exécuter un outil sensible, on demande l'accord d'un humain.
+
+44
+00:04:17,514 --> 00:04:24,943
+S'il refuse, on ne lève pas d'exception : on renvoie au modèle un résultat qui explique le refus, et il peut proposer une autre solution.
+
+45
+00:04:25,443 --> 00:04:29,006
+C'est simple, et c'est l'un des garde-fous les plus efficaces.
+
+46
+00:04:29,856 --> 00:04:35,126
+Un agent peut travailler plusieurs minutes. Il faut que l'utilisateur comprenne ce qui se passe.
+
+47
+00:04:35,626 --> 00:04:43,485
+Montre les étapes en cours : lecture de tel fichier, lancement des tests. L'utilisateur suit, et fait davantage confiance.
+
+48
+00:04:43,985 --> 00:04:48,593
+Streame le texte : il s'affiche au fil de l'eau, au lieu d'arriver d'un bloc à la fin.
+
+49
+00:04:49,093 --> 00:04:54,688
+Et permets d'interrompre : un bouton stop, et la possibilité de corriger le tir en cours de route.
+
+50
+00:04:55,188 --> 00:04:58,113
+On le construira en Angular dans le module dix-huit.
+
+51
+00:04:58,963 --> 00:05:00,463
+Faisons le point.
+
+52
+00:05:00,963 --> 00:05:04,759
+Un agent, c'est un LLM, des outils, et une boucle.
+
+53
+00:05:05,259 --> 00:05:08,114
+On boucle tant que le modèle demande des outils.
+
+54
+00:05:08,614 --> 00:05:13,710
+Il faut toujours plusieurs conditions d'arrêt : un nombre de tours, un budget, et l'humain.
+
+55
+00:05:14,210 --> 00:05:17,460
+Les erreurs d'outils sont renvoyées au modèle, pas levées.
+
+56
+00:05:17,960 --> 00:05:21,175
+Et les actions sensibles passent par une validation humaine.
+
+57
+00:05:22,025 --> 00:05:23,525
+À toi de jouer.
+
+58
+00:05:24,025 --> 00:05:27,519
+Écris la boucle de ce module, sans aucun framework.
+
+59
+00:05:28,019 --> 00:05:34,090
+Donne-lui trois outils : lister, lire, et écrire des fichiers, limités à un dossier de test.
+
+60
+00:05:34,590 --> 00:05:37,991
+Demande-lui : ajoute un fichier README qui décrit ce projet.
+
+61
+00:05:38,491 --> 00:05:43,657
+Puis ajoute une validation humaine sur l'écriture, et affiche un journal de chaque tour.
+
+62
+00:05:44,507 --> 00:05:47,327
+Dans le module six, on s'attaque à la mémoire.
+
+63
+00:05:47,827 --> 00:05:52,609
+Comment un agent garde le fil d'une longue tâche, et se souvient de toi d'une session à l'autre.

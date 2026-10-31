@@ -1,0 +1,195 @@
+1
+00:00:00,300 --> 00:00:02,784
+Module 10 : Les agents en Java.
+
+2
+00:00:03,284 --> 00:00:09,692
+Beaucoup d'entreprises vivent en Java. Bonne nouvelle : pas besoin de changer de stack pour construire des agents.
+
+3
+00:00:10,192 --> 00:00:15,532
+Spring AI et LangChain4j apportent tout ce qu'on a vu, dans un style familier.
+
+4
+00:00:16,382 --> 00:00:20,456
+Deux frameworks dominent l'écosystème Java. Comparons-les.
+
+5
+00:00:20,956 --> 00:00:28,339
+Spring AI est le projet officiel de l'écosystème Spring. LangChain4j est un projet communautaire très actif.
+
+6
+00:00:28,839 --> 00:00:36,953
+Spring AI propose un client fluide et des advisors. LangChain4j mise sur des interfaces déclaratives, les AI Services.
+
+7
+00:00:37,453 --> 00:00:45,776
+Spring AI s'intègre nativement à Spring Boot. LangChain4j fonctionne avec Spring Boot, Quarkus, ou en Java pur.
+
+8
+00:00:46,276 --> 00:00:52,185
+Les deux couvrent l'essentiel : modèles, outils, mémoire, RAG, et le protocole MCP.
+
+9
+00:00:52,685 --> 00:00:57,897
+Notre conseil : si tu es en Spring Boot, commence par Spring AI.
+
+10
+00:00:58,397 --> 00:01:04,120
+Si tu préfères le style déclaratif, ou si tu es sur Quarkus, LangChain4j est excellent.
+
+11
+00:01:04,970 --> 00:01:11,877
+Avec Spring AI, un outil est une simple méthode annotée avec arobase Tool, dans un composant Spring.
+
+12
+00:01:12,377 --> 00:01:16,741
+La description de l'outil et de ses paramètres est donnée dans les annotations.
+
+13
+00:01:17,241 --> 00:01:21,896
+Le schéma JSON est généré automatiquement à partir de la signature Java.
+
+14
+00:01:22,396 --> 00:01:30,127
+Et le point clé : l'outil appelle ta couche métier existante, avec ses transactions et ses règles. Tu ne réécris rien.
+
+15
+00:01:30,977 --> 00:01:39,695
+Voici l'agent complet. On construit un ChatClient avec un prompt système, les outils, et deux advisors. Le premier gère la mémoire de conversation.
+
+16
+00:01:40,195 --> 00:01:48,762
+Le second fait du RAG : il cherche les passages pertinents dans un vector store, par exemple PostgreSQL avec pgvector, et les ajoute au contexte.
+
+17
+00:01:49,262 --> 00:01:57,551
+La boucle agentique est gérée par Spring AI : quand le modèle demande un outil, la méthode Java est appelée, et le résultat lui est renvoyé automatiquement.
+
+18
+00:01:58,401 --> 00:02:08,663
+Avec LangChain4j, on décrit l'agent par une simple interface Java, avec des annotations : le message système, l'identifiant de mémoire, le message utilisateur.
+
+19
+00:02:09,163 --> 00:02:11,879
+Les outils sont aussi des méthodes annotées.
+
+20
+00:02:12,379 --> 00:02:20,551
+Puis AI Services génère l'implémentation, avec le modèle, les outils, une mémoire par utilisateur, et un récupérateur de contenu pour le RAG.
+
+21
+00:02:21,051 --> 00:02:25,009
+On appelle ensuite l'agent comme n'importe quel service Java.
+
+22
+00:02:25,859 --> 00:02:30,932
+Faisons la correspondance entre les concepts du cours et ces deux frameworks.
+
+23
+00:02:31,432 --> 00:02:34,450
+Les outils : des méthodes annotées dans les deux cas.
+
+24
+00:02:34,950 --> 00:02:40,940
+La mémoire : ChatMemory avec un advisor d'un côté, ChatMemoryProvider de l'autre.
+
+25
+00:02:41,440 --> 00:02:46,756
+Le RAG : un vector store avec un advisor dédié, ou un content retriever.
+
+26
+00:02:47,256 --> 00:02:54,813
+La sortie structurée : la méthode entity avec un record Java, ou simplement le type de retour de l'interface.
+
+27
+00:02:55,313 --> 00:03:00,780
+Et le protocole MCP, pour se connecter à des outils externes, qu'on verra dans le prochain module.
+
+28
+00:03:01,630 --> 00:03:04,636
+Pour exposer l'agent, un contrôleur REST suffit.
+
+29
+00:03:05,136 --> 00:03:13,088
+En utilisant stream au lieu de call, on obtient un Flux de tokens, envoyé au navigateur en Server-Sent Events.
+
+30
+00:03:13,588 --> 00:03:20,135
+Le texte s'affiche au fil de l'eau. L'identifiant de conversation vient de l'utilisateur authentifié.
+
+31
+00:03:20,635 --> 00:03:25,069
+On branchera une interface Angular sur ce point d'entrée dans le module dix-huit.
+
+32
+00:03:25,919 --> 00:03:28,797
+Quelques bonnes pratiques spécifiques au monde Java.
+
+33
+00:03:29,297 --> 00:03:36,030
+Réutilise ta couche métier : les outils appellent tes services existants, avec leurs règles et leurs transactions.
+
+34
+00:03:36,530 --> 00:03:44,412
+Applique Spring Security : un outil doit s'exécuter avec les droits de l'utilisateur connecté, jamais avec des droits d'administrateur.
+
+35
+00:03:44,912 --> 00:03:54,245
+Teste : les outils en tests unitaires, classiques. Et dans les tests d'intégration, on peut simuler le modèle pour obtenir des résultats déterministes.
+
+36
+00:03:54,745 --> 00:04:02,569
+Et pense à la résilience : des délais d'expiration, des nouveaux essais, et les threads virtuels de Java vingt et un pour les appels longs.
+
+37
+00:04:03,419 --> 00:04:04,919
+Faisons le point.
+
+38
+00:04:05,419 --> 00:04:08,831
+Java est un excellent choix pour des agents d'entreprise.
+
+39
+00:04:09,331 --> 00:04:14,380
+Spring AI propose un ChatClient, des outils annotés, et des advisors.
+
+40
+00:04:14,880 --> 00:04:18,676
+LangChain4j propose des interfaces déclaratives.
+
+41
+00:04:19,176 --> 00:04:22,658
+Les outils réutilisent ta couche métier et ta sécurité.
+
+42
+00:04:23,158 --> 00:04:27,789
+Et le streaming passe par un Flux et les Server-Sent Events.
+
+43
+00:04:28,639 --> 00:04:31,622
+À toi de jouer, sur le projet fil rouge.
+
+44
+00:04:32,122 --> 00:04:37,903
+Crée un projet Spring Boot, avec le starter Spring AI de ton fournisseur de modèles.
+
+45
+00:04:38,403 --> 00:04:41,502
+Écris deux outils qui appellent un service existant.
+
+46
+00:04:42,002 --> 00:04:46,250
+Ajoute la mémoire, et le RAG sur ta documentation avec pgvector.
+
+47
+00:04:46,750 --> 00:04:51,579
+Puis expose le point d'entrée en streaming, et teste-le avec curl.
+
+48
+00:04:52,429 --> 00:04:55,690
+Dans le module onze, on découvre le protocole MCP.
+
+49
+00:04:56,190 --> 00:05:02,249
+Un standard pour brancher n'importe quel outil sur n'importe quel agent, comme une prise USB pour l'IA.

@@ -1,0 +1,211 @@
+1
+00:00:00,300 --> 00:00:04,630
+Module 11 : le protocole M C P, Model Context Protocol.
+
+2
+00:00:05,130 --> 00:00:13,628
+Jusqu'ici, chaque outil était codé dans notre agent. Avec MCP, on écrit un outil une seule fois, et n'importe quel agent compatible peut l'utiliser.
+
+3
+00:00:14,478 --> 00:00:24,543
+MCP, le Model Context Protocol, est un standard ouvert, lancé par Anthropic fin deux mille vingt-quatre, et aujourd'hui adopté par la plupart des acteurs.
+
+4
+00:00:25,043 --> 00:00:32,925
+On le compare souvent à une prise USB-C : un outil écrit une seule fois peut être branché sur n'importe quel agent compatible.
+
+5
+00:00:33,775 --> 00:00:37,547
+Pour comprendre MCP, regardons le problème qu'il résout.
+
+6
+00:00:38,047 --> 00:00:47,659
+Sans standard, chaque application d'IA doit écrire sa propre intégration pour chaque système. Cinq applications et dix systèmes, c'est cinquante intégrations.
+
+7
+00:00:48,159 --> 00:00:56,401
+Avec MCP, chaque système expose un serveur, et chaque application parle le protocole. Cinq plus dix : quinze composants.
+
+8
+00:00:56,901 --> 00:01:05,538
+Pour toi, concrètement : ton API interne devient utilisable depuis Claude, ChatGPT, ton éditeur de code, et tes propres agents, sans rien réécrire.
+
+9
+00:01:06,388 --> 00:01:09,603
+L'architecture de MCP comporte quatre éléments.
+
+10
+00:01:10,103 --> 00:01:15,466
+L'hôte : l'application d'IA, comme Claude, ton éditeur, ou ton propre agent.
+
+11
+00:01:15,966 --> 00:01:21,375
+Le client MCP, à l'intérieur de l'hôte : il gère une connexion avec chaque serveur.
+
+12
+00:01:21,875 --> 00:01:26,669
+Le serveur MCP : un petit programme qui expose des outils et des données.
+
+13
+00:01:27,169 --> 00:01:32,555
+Et derrière le serveur, ton système : une API, une base de données, des fichiers.
+
+14
+00:01:33,055 --> 00:01:40,577
+Au démarrage, le client demande au serveur la liste de ses outils, avec leurs descriptions et leurs schémas. L'agent les découvre automatiquement.
+
+15
+00:01:41,427 --> 00:01:44,909
+Un serveur MCP peut exposer trois types de choses.
+
+16
+00:01:45,409 --> 00:01:51,701
+Les tools, ou outils : des actions que le modèle peut appeler, comme créer un ticket ou lancer une requête.
+
+17
+00:01:52,201 --> 00:01:54,034
+C'est de loin le plus utilisé.
+
+18
+00:01:54,534 --> 00:02:01,290
+Les resources : des données que l'application peut lire et mettre dans le contexte, comme un fichier ou le schéma d'une base.
+
+19
+00:02:01,790 --> 00:02:08,918
+Et les prompts : des modèles de prompts prêts à l'emploi, que l'utilisateur peut choisir, par exemple : analyser un incident.
+
+20
+00:02:09,768 --> 00:02:12,403
+Un serveur MCP peut communiquer de deux façons.
+
+21
+00:02:12,903 --> 00:02:20,251
+En stdio, le serveur est un processus local, lancé par l'application. En HTTP, c'est un service web distant.
+
+22
+00:02:20,751 --> 00:02:28,053
+Le premier convient aux outils locaux, comme l'accès aux fichiers. Le second, aux services d'entreprise partagés par toute une équipe.
+
+23
+00:02:28,553 --> 00:02:37,840
+Côté sécurité : en local, le serveur a les droits de l'utilisateur. À distance, on utilise HTTPS et une authentification OAuth.
+
+24
+00:02:38,690 --> 00:02:46,421
+Voici un serveur MCP complet en TypeScript, avec le SDK officiel. On crée le serveur avec un nom et une version.
+
+25
+00:02:46,921 --> 00:02:51,402
+On enregistre un outil avec sa description, et le schéma de ses paramètres en Zod.
+
+26
+00:02:51,902 --> 00:02:59,761
+La fonction appelle ton API, et renvoie le résultat sous forme de contenu texte. Enfin, on connecte le serveur au transport stdio.
+
+27
+00:03:00,261 --> 00:03:05,229
+Une vingtaine de lignes, et ton API est utilisable par n'importe quel agent compatible.
+
+28
+00:03:06,079 --> 00:03:12,417
+En Java, c'est encore plus simple. On ajoute le starter serveur MCP de Spring AI.
+
+29
+00:03:12,917 --> 00:03:19,476
+Puis on déclare un bean qui expose nos outils, les mêmes méthodes annotées qu'au module dix. Et c'est tout.
+
+30
+00:03:19,976 --> 00:03:27,812
+L'application Spring Boot expose un serveur MCP en HTTP. Tes services Java deviennent des outils pour tous les agents de l'entreprise.
+
+31
+00:03:28,662 --> 00:03:33,572
+Avant d'écrire un serveur, regarde s'il existe déjà. Il y en a des milliers.
+
+32
+00:03:34,072 --> 00:03:40,410
+Pour le développement : GitHub, GitLab, Jira, Sentry, ou un navigateur piloté.
+
+33
+00:03:40,910 --> 00:03:45,808
+Pour les données : PostgreSQL, les fichiers, Google Drive, Notion.
+
+34
+00:03:46,308 --> 00:03:50,928
+Pour la communication : Slack, l'e-mail, l'agenda.
+
+35
+00:03:51,428 --> 00:03:59,751
+Et pour s'y brancher, il suffit en général d'une ligne de configuration dans l'application hôte : la commande à lancer, ou l'URL du serveur.
+
+36
+00:04:00,601 --> 00:04:05,581
+MCP ouvre de grandes possibilités, et donc des risques. Voici les règles d'hygiène.
+
+37
+00:04:06,081 --> 00:04:13,383
+N'installe que des serveurs de confiance. Un serveur tiers exécute du code chez toi : privilégie les sources officielles.
+
+38
+00:04:13,883 --> 00:04:19,536
+Applique le moindre privilège : des jetons en lecture seule quand c'est possible, et un périmètre limité.
+
+39
+00:04:20,036 --> 00:04:28,313
+Attention aux descriptions piégées : la description d'un outil entre dans le contexte du modèle, et peut contenir des instructions malveillantes.
+
+40
+00:04:28,813 --> 00:04:36,440
+Et attention au nombre : dix serveurs avec vingt outils chacun saturent le contexte et embrouillent le modèle. N'active que ce qui est utile.
+
+41
+00:04:37,290 --> 00:04:38,790
+Faisons le point.
+
+42
+00:04:39,290 --> 00:04:42,923
+MCP standardise la connexion entre agents et outils.
+
+43
+00:04:43,423 --> 00:04:48,298
+Un hôte, des clients, des serveurs : l'agent découvre les outils automatiquement.
+
+44
+00:04:48,798 --> 00:04:53,360
+Les serveurs exposent des outils, des ressources et des prompts, en local ou en HTTP.
+
+45
+00:04:53,860 --> 00:04:58,387
+Un serveur s'écrit en quelques lignes, en TypeScript ou avec Spring AI.
+
+46
+00:04:58,887 --> 00:05:03,936
+Et la sécurité repose sur la confiance, le moindre privilège, et la sobriété.
+
+47
+00:05:04,786 --> 00:05:06,286
+À toi de jouer.
+
+48
+00:05:06,786 --> 00:05:12,381
+Expose deux outils de ton API dans un serveur MCP, en TypeScript ou avec Spring AI.
+
+49
+00:05:12,881 --> 00:05:15,771
+Teste-le avec l'outil officiel MCP Inspector.
+
+50
+00:05:16,271 --> 00:05:21,355
+Branche-le dans une application compatible, comme Claude ou ton éditeur de code.
+
+51
+00:05:21,855 --> 00:05:27,624
+Puis branche-le aussi sur ton propre agent, via un client MCP. Le même serveur sert partout.
+
+52
+00:05:28,474 --> 00:05:31,666
+Dans le module douze, on apprend à l'agent à planifier.
+
+53
+00:05:32,166 --> 00:05:37,018
+Décomposer une tâche longue, suivre un plan, et corriger son propre travail.

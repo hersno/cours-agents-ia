@@ -1,0 +1,231 @@
+1
+00:00:00,300 --> 00:00:02,389
+Module 6 : La mémoire.
+
+2
+00:00:02,889 --> 00:00:06,336
+Le modèle est sans état : il oublie tout entre deux appels.
+
+3
+00:00:06,836 --> 00:00:12,779
+Dans ce module, on apprend à donner une mémoire à un agent, pendant la tâche, et d'une session à l'autre.
+
+4
+00:00:13,629 --> 00:00:17,784
+Rappelle-toi du module deux : le modèle oublie tout entre deux appels.
+
+5
+00:00:18,284 --> 00:00:26,724
+Donner une mémoire à un agent, c'est donc choisir, à chaque appel, ce qu'on remet dans son contexte. On parle souvent d'ingénierie du contexte.
+
+6
+00:00:27,574 --> 00:00:32,008
+On distingue plusieurs types de mémoire, inspirés de la mémoire humaine.
+
+7
+00:00:32,508 --> 00:00:38,567
+La mémoire de travail : le contexte de la tâche en cours, avec les messages et les résultats d'outils.
+
+8
+00:00:39,067 --> 00:00:43,675
+La mémoire de conversation : l'historique d'une session, parfois résumé.
+
+9
+00:00:44,175 --> 00:00:51,233
+La mémoire sémantique : des faits durables, comme les préférences d'un utilisateur, ou les décisions prises sur un projet.
+
+10
+00:00:51,733 --> 00:00:59,197
+Et la mémoire épisodique : le souvenir d'expériences passées. Par exemple : la dernière fois, cette approche a échoué.
+
+11
+00:01:00,047 --> 00:01:06,118
+Commençons par la mémoire de conversation. Sur une longue session, l'historique dépasse vite le raisonnable.
+
+12
+00:01:06,618 --> 00:01:10,553
+Il existe trois stratégies, de la plus simple à la plus fine.
+
+13
+00:01:11,053 --> 00:01:18,413
+La fenêtre glissante : on garde seulement les derniers messages. Simple, mais on perd le début, souvent important.
+
+14
+00:01:18,913 --> 00:01:26,540
+Le résumé : quand l'historique devient trop long, on demande au modèle de résumer les anciens messages, et on remplace ces messages par le résumé.
+
+15
+00:01:27,040 --> 00:01:35,259
+Le nettoyage ciblé : on retire en priorité les vieux résultats d'outils, souvent volumineux et devenus inutiles, en gardant les décisions.
+
+16
+00:01:35,759 --> 00:01:42,353
+Dans tous les cas, garde intacts le prompt système, l'objectif initial, et les messages les plus récents.
+
+17
+00:01:43,203 --> 00:01:48,647
+Voici une fonction de compaction. Si l'historique dépasse un seuil de tokens, on le compacte.
+
+18
+00:01:49,147 --> 00:01:54,104
+On garde le premier message, qui contient l'objectif, et les six messages les plus récents.
+
+19
+00:01:54,604 --> 00:02:00,617
+Tout le milieu est résumé par un modèle plus petit et moins cher, avec une consigne précise : les décisions,
+
+20
+00:02:01,117 --> 00:02:05,156
+les faits découverts, les fichiers modifiés, et ce qui reste à faire.
+
+21
+00:02:05,656 --> 00:02:13,666
+Attention à un détail technique : il ne faut jamais couper entre une demande d'outil et son résultat, sinon l'API refusera l'historique.
+
+22
+00:02:14,516 --> 00:02:19,832
+Passons à la mémoire long terme, celle qui survit d'une session à l'autre. Quatre questions se posent.
+
+23
+00:02:20,332 --> 00:02:28,377
+Quoi retenir ? Des faits durables et utiles : les préférences, le contexte du projet, les décisions. Pas toute la conversation.
+
+24
+00:02:28,877 --> 00:02:35,018
+Où stocker ? Des fichiers, une base SQL, ou une base vectorielle si on veut chercher par le sens.
+
+25
+00:02:35,518 --> 00:02:37,874
+On verra cette dernière dans le module sept.
+
+26
+00:02:38,374 --> 00:02:44,515
+Comment écrire ? Soit l'agent dispose d'un outil pour mémoriser, soit on extrait les faits importants à la fin de la session.
+
+27
+00:02:45,015 --> 00:02:50,842
+Comment relire ? On injecte l'essentiel dans le prompt système, et on donne un outil de recherche pour le reste.
+
+28
+00:02:51,692 --> 00:02:58,216
+Concrètement, on peut donner deux outils à l'agent : un pour enregistrer un fait, et un pour chercher dans les faits mémorisés.
+
+29
+00:02:58,716 --> 00:03:01,989
+Encore une fois, les descriptions font tout le travail.
+
+30
+00:03:02,489 --> 00:03:10,650
+Elles disent quoi mémoriser, ce qu'il ne faut pas mémoriser, comme les données sensibles, et quand chercher : avant de redemander une information à l'utilisateur.
+
+31
+00:03:11,500 --> 00:03:13,937
+Voyons le résultat sur deux sessions.
+
+32
+00:03:14,437 --> 00:03:19,034
+Lundi, l'utilisateur exprime une préférence. L'agent la mémorise.
+
+33
+00:03:19,534 --> 00:03:23,991
+Jeudi, dans une toute nouvelle session, l'utilisateur demande une revue.
+
+34
+00:03:24,491 --> 00:03:28,716
+Au démarrage, les préférences ont été chargées dans le prompt système.
+
+35
+00:03:29,216 --> 00:03:36,611
+Et la revue respecte la préférence, sans que l'utilisateur ait à la répéter. C'est exactement ce qui donne l'impression d'un vrai collègue.
+
+36
+00:03:37,461 --> 00:03:42,615
+Pour les tâches longues, une technique très efficace : les notes de travail.
+
+37
+00:03:43,115 --> 00:03:48,931
+L'agent tient à jour un fichier de progression : ce qui est fait, ce qui est en cours, ce qui reste à faire.
+
+38
+00:03:49,431 --> 00:03:54,016
+Même si l'historique est compacté, ces notes restent exactes et détaillées.
+
+39
+00:03:54,516 --> 00:03:59,554
+Et une nouvelle session peut relire les notes, et repartir exactement d'où on en était.
+
+40
+00:04:00,054 --> 00:04:04,024
+C'est ainsi que les agents de code gèrent des tâches de plusieurs heures.
+
+41
+00:04:04,874 --> 00:04:07,845
+La mémoire est puissante, mais elle a ses pièges.
+
+42
+00:04:08,345 --> 00:04:15,554
+La mémoire polluée : un fait faux, une fois mémorisé, ressort à chaque session. Il faut pouvoir corriger et supprimer.
+
+43
+00:04:16,054 --> 00:04:20,349
+Les faits obsolètes : date chaque fait, et fais primer le plus récent.
+
+44
+00:04:20,849 --> 00:04:28,186
+Les données personnelles : le RGPD s'applique. Informe l'utilisateur, limite ce que tu stockes, et permets l'effacement.
+
+45
+00:04:28,686 --> 00:04:35,036
+Et trop de mémoire tue la mémoire : injecter deux cents faits noie le modèle. Sélectionne ce qui est pertinent.
+
+46
+00:04:35,886 --> 00:04:37,386
+Faisons le point.
+
+47
+00:04:37,886 --> 00:04:41,635
+La mémoire, c'est ce que ton code choisit de remettre dans le contexte.
+
+48
+00:04:42,135 --> 00:04:47,080
+Pour un historique long : fenêtre glissante, résumé, ou nettoyage ciblé.
+
+49
+00:04:47,580 --> 00:04:52,084
+Pour le long terme : des faits durables, stockés, et relus à bon escient.
+
+50
+00:04:52,584 --> 00:04:55,428
+Les notes de travail permettent de mener de longues tâches.
+
+51
+00:04:55,928 --> 00:05:00,826
+Et une bonne mémoire est corrigeable, datée, et respectueuse des données personnelles.
+
+52
+00:05:01,676 --> 00:05:03,176
+À toi de jouer.
+
+53
+00:05:03,676 --> 00:05:09,526
+Ajoute les outils de mémoire à ton agent, avec un simple fichier JSON ou une base SQLite.
+
+54
+00:05:10,026 --> 00:05:13,729
+Charge les préférences dans le prompt système au démarrage.
+
+55
+00:05:14,229 --> 00:05:18,013
+Ajoute la compaction quand l'historique dépasse vingt messages.
+
+56
+00:05:18,513 --> 00:05:23,086
+Puis teste sur deux sessions : ton agent se souvient-il de tes préférences ?
+
+57
+00:05:23,936 --> 00:05:28,660
+Dans le module sept, on donne à l'agent l'accès à toute ta documentation : c'est le RAG.
+
+58
+00:05:29,160 --> 00:05:34,384
+Embeddings, découpage, base vectorielle, et recherche hybride.

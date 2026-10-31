@@ -1,0 +1,211 @@
+1
+00:00:00,300 --> 00:00:03,294
+Module 12 : Planification et raisonnement.
+
+2
+00:00:03,794 --> 00:00:08,182
+Un agent qui enchaîne les actions au coup par coup s'en sort bien sur des tâches courtes.
+
+3
+00:00:08,682 --> 00:00:13,209
+Sur des tâches longues, il lui faut un plan. C'est le sujet de ce module.
+
+4
+00:00:14,059 --> 00:00:20,653
+Sur une tâche longue, deux capacités font la différence : planifier, et vérifier son travail.
+
+5
+00:00:21,153 --> 00:00:27,584
+Sans plan, l'agent se disperse. Sans vérification, ses erreurs s'accumulent sans qu'il s'en rende compte.
+
+6
+00:00:28,434 --> 00:00:30,802
+Comparons deux stratégies d'exécution.
+
+7
+00:00:31,302 --> 00:00:37,768
+ReAct décide une action à la fois. Plan-and-execute établit d'abord un plan complet, puis l'exécute.
+
+8
+00:00:38,268 --> 00:00:43,886
+ReAct est souple et s'adapte vite. Le plan donne une vision d'ensemble, et un suivi clair.
+
+9
+00:00:44,386 --> 00:00:50,295
+Mais ReAct se perd sur les longues tâches, tandis qu'un plan devient rigide si la réalité change.
+
+10
+00:00:50,795 --> 00:00:58,933
+En pratique, on combine les deux : un plan pour les tâches longues, qu'on révise régulièrement, et du pas à pas pour exécuter chaque étape.
+
+11
+00:00:59,783 --> 00:01:01,872
+Voici le schéma le plus robuste.
+
+12
+00:01:02,372 --> 00:01:06,702
+D'abord, planifier : découper l'objectif en étapes vérifiables.
+
+13
+00:01:07,202 --> 00:01:11,694
+Ensuite, exécuter une étape, en mode pas à pas, avec les outils.
+
+14
+00:01:12,194 --> 00:01:15,386
+Puis vérifier : l'étape est-elle vraiment réussie ?
+
+15
+00:01:15,886 --> 00:01:22,329
+Et re-planifier : à la lumière de ce qu'on a appris, on ajuste les étapes restantes. Puis on recommence.
+
+16
+00:01:23,179 --> 00:01:29,447
+Comment faire concrètement ? Une approche simple et efficace : donner à l'agent un outil pour tenir son plan à jour.
+
+17
+00:01:29,947 --> 00:01:36,401
+Le plan est structuré : un objectif, et des étapes, chacune avec un critère de succès et un statut.
+
+18
+00:01:36,901 --> 00:01:43,332
+La description de l'outil dit quand l'utiliser : au début, après chaque étape, et quand le plan doit changer.
+
+19
+00:01:43,832 --> 00:01:49,195
+Le plan est sauvegardé et affiché à l'utilisateur, qui voit ainsi l'avancement en temps réel.
+
+20
+00:01:49,695 --> 00:01:53,862
+C'est exactement ce que font les agents de code avec leur liste de tâches.
+
+21
+00:01:54,712 --> 00:01:56,603
+Qu'est-ce qu'une bonne décomposition ?
+
+22
+00:01:57,103 --> 00:02:02,965
+Des étapes vérifiables : chacune a un critère de succès observable, comme : les tests passent.
+
+23
+00:02:03,465 --> 00:02:08,665
+La bonne granularité : trois à dix étapes, chacune réalisable en quelques actions.
+
+24
+00:02:09,165 --> 00:02:13,402
+Les dépendances : ce qui dépend de quoi, et ce qui peut se faire en parallèle.
+
+25
+00:02:13,902 --> 00:02:18,847
+Et les inconnues d'abord : commencer par explorer ce qu'on ne sait pas encore, avant de s'engager.
+
+26
+00:02:19,697 --> 00:02:23,469
+Les modèles récents savent raisonner avant d'agir. Comment en tirer parti ?
+
+27
+00:02:23,969 --> 00:02:30,922
+La réflexion étendue : le modèle réfléchit avant de répondre, avec un budget de tokens dédié. Très utile pour planifier.
+
+28
+00:02:31,422 --> 00:02:39,316
+La réflexion entre les appels d'outils : le modèle analyse chaque résultat avant de décider de la suite. Les décisions sont nettement meilleures.
+
+29
+00:02:39,816 --> 00:02:47,478
+Et le bon modèle au bon moment : un grand modèle pour planifier, un modèle plus petit et plus rapide pour exécuter les étapes simples.
+
+30
+00:02:48,328 --> 00:02:52,100
+Deuxième capacité clé : vérifier son propre travail.
+
+31
+00:02:52,600 --> 00:03:00,006
+La meilleure vérification passe par l'action : relancer les tests, relire le fichier écrit, exécuter la requête produite.
+
+32
+00:03:00,506 --> 00:03:06,461
+L'auto-critique : demander au modèle de relire sa réponse, en cherchant les oublis et les erreurs.
+
+33
+00:03:06,961 --> 00:03:14,425
+Le regard extérieur : un second agent, avec un autre prompt, joue le rôle de relecteur. Il est moins complaisant que l'auteur.
+
+34
+00:03:14,925 --> 00:03:23,469
+Attention : sans critère objectif, l'auto-critique peut tourner en rond, ou dégrader une bonne réponse. Préfère toujours un test concret.
+
+35
+00:03:24,319 --> 00:03:27,337
+Voyons un agent planifier une tâche réelle.
+
+36
+00:03:27,837 --> 00:03:31,946
+Il commence par un plan en cinq étapes, avec leurs critères de succès.
+
+37
+00:03:32,446 --> 00:03:37,019
+À l'étape deux, le build échoue : une dépendance est trop ancienne.
+
+38
+00:03:37,519 --> 00:03:42,406
+Il ne force pas : il ajoute une étape au plan, pour mettre à jour cette dépendance d'abord.
+
+39
+00:03:42,906 --> 00:03:48,478
+Après chaque étape, il vérifie avec les tests : deux cent quatorze sur deux cent quatorze.
+
+40
+00:03:48,978 --> 00:03:56,976
+Et il rend compte honnêtement : l'étape cinq est reportée, car elle demande une décision humaine. C'est le comportement attendu d'un bon agent.
+
+41
+00:03:57,826 --> 00:03:59,326
+Faisons le point.
+
+42
+00:03:59,826 --> 00:04:04,156
+Une tâche longue demande un plan explicite, révisé en cours de route.
+
+43
+00:04:04,656 --> 00:04:08,393
+Les étapes sont vérifiables, et on traite les inconnues d'abord.
+
+44
+00:04:08,893 --> 00:04:11,574
+Un outil de plan rend l'avancement visible.
+
+45
+00:04:12,074 --> 00:04:17,007
+La vérification passe d'abord par l'action : tests, relecture, exécution.
+
+46
+00:04:17,507 --> 00:04:22,185
+Et on peut utiliser un grand modèle pour planifier, et un plus petit pour exécuter.
+
+47
+00:04:23,035 --> 00:04:24,535
+À toi de jouer.
+
+48
+00:04:25,035 --> 00:04:28,889
+Ajoute un outil de plan à ton agent, et affiche le plan à chaque mise à jour.
+
+49
+00:04:29,389 --> 00:04:36,203
+Donne-lui une tâche d'au moins cinq étapes : par exemple ajouter un point d'entrée REST, avec ses tests et sa documentation.
+
+50
+00:04:36,703 --> 00:04:40,023
+Ajoute une vérification obligatoire avant de conclure.
+
+51
+00:04:40,523 --> 00:04:45,247
+Puis compare avec et sans plan : taux de réussite, nombre de tours, et coût.
+
+52
+00:04:46,097 --> 00:04:49,881
+Dans le module treize, on fait travailler plusieurs agents ensemble.
+
+53
+00:04:50,381 --> 00:04:56,382
+Orchestrateur, sous-agents, transferts de tâche : et surtout, quand cela vaut vraiment le coup.

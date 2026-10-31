@@ -1,0 +1,231 @@
+1
+00:00:00,300 --> 00:00:03,422
+Module 17 : Coûts et performance.
+
+2
+00:00:03,922 --> 00:00:10,574
+Un agent qui fonctionne, c'est bien. Un agent qui fonctionne à un coût et une vitesse acceptables, c'est un produit.
+
+3
+00:00:11,074 --> 00:00:13,128
+Voyons comment optimiser les deux.
+
+4
+00:00:13,978 --> 00:00:20,084
+La formule est simple : le coût, c'est le nombre de tokens, multiplié par le prix du token.
+
+5
+00:00:20,584 --> 00:00:26,156
+Pour réduire la facture, on réduit le nombre de tokens, ou le prix payé par token, ou les deux.
+
+6
+00:00:26,656 --> 00:00:30,626
+Et bonne nouvelle : la plupart de ces leviers réduisent aussi la latence.
+
+7
+00:00:31,476 --> 00:00:36,374
+D'abord, comprendre où part l'argent dans un agent. La réponse surprend souvent.
+
+8
+00:00:36,874 --> 00:00:42,202
+Le contexte relu à chaque tour. Au dixième tour, on renvoie tout l'historique au modèle.
+
+9
+00:00:42,702 --> 00:00:47,705
+Dans un agent, ce sont les tokens d'entrée qui dominent la facture, pas la réponse.
+
+10
+00:00:48,205 --> 00:00:55,054
+Les gros résultats d'outils : un JSON de vingt mille tokens, ajouté au contexte, sera relu à chaque tour suivant.
+
+11
+00:00:55,554 --> 00:01:00,035
+Un modèle trop gros : utiliser le plus grand modèle pour une simple tâche de tri.
+
+12
+00:01:00,535 --> 00:01:06,095
+Et des tours inutiles : avec des outils mal décrits, l'agent tâtonne, et chaque tâtonnement coûte.
+
+13
+00:01:06,945 --> 00:01:13,213
+Prenons un exemple chiffré, avec un prix illustratif de trois euros par million de tokens en entrée.
+
+14
+00:01:13,713 --> 00:01:18,391
+Une tâche en dix tours, dont le contexte grandit de cinq mille tokens par tour.
+
+15
+00:01:18,891 --> 00:01:27,040
+Version de base : environ deux cent soixante-quinze mille tokens en entrée au total, soit environ quatre-vingt-trois centimes par tâche.
+
+16
+00:01:27,540 --> 00:01:32,671
+En rendant les résultats d'outils deux fois plus compacts, on divise presque le coût par deux.
+
+17
+00:01:33,171 --> 00:01:40,926
+En ajoutant le cache de prompt, la plupart de ces tokens sont relus depuis le cache, à environ dix pour cent du prix : treize centimes.
+
+18
+00:01:41,426 --> 00:01:46,847
+Sur dix mille tâches par mois, on passe de huit mille trois cents euros à environ mille trois cents euros.
+
+19
+00:01:47,347 --> 00:01:51,502
+Les chiffres sont illustratifs, mais l'ordre de grandeur est réaliste.
+
+20
+00:01:52,352 --> 00:01:56,089
+Le levier le plus puissant pour un agent : le cache de prompt.
+
+21
+00:01:56,589 --> 00:02:03,670
+Le principe : le début du prompt est identique d'un appel à l'autre. Le fournisseur le garde en cache, pendant quelques minutes.
+
+22
+00:02:04,170 --> 00:02:10,020
+Le gain : chez la plupart des fournisseurs, un token lu depuis le cache coûte environ dix fois moins cher.
+
+23
+00:02:10,520 --> 00:02:12,411
+Et la réponse arrive plus vite.
+
+24
+00:02:12,911 --> 00:02:19,203
+La règle d'or : tout ce qui est stable en haut, le prompt système et les outils, et tout ce qui varie en bas.
+
+25
+00:02:19,703 --> 00:02:23,661
+Le piège classique : mettre la date et l'heure en haut du prompt.
+
+26
+00:02:24,161 --> 00:02:27,922
+Le début change à chaque appel, et le cache ne sert plus jamais.
+
+27
+00:02:28,772 --> 00:02:36,387
+Avec l'API d'Anthropic, on active le cache en plaçant un marqueur sur le dernier bloc stable, ici le prompt système.
+
+28
+00:02:36,887 --> 00:02:40,265
+Tout ce qui précède, outils compris, sera mis en cache.
+
+29
+00:02:40,765 --> 00:02:48,740
+On peut aussi placer un marqueur sur l'historique, pour mettre en cache les tours précédents. D'autres fournisseurs appliquent le cache automatiquement.
+
+30
+00:02:49,240 --> 00:02:56,251
+Et l'objet usage permet de vérifier : ici, quarante et un mille tokens lus depuis le cache, et seulement huit cents tokens nouveaux.
+
+31
+00:02:57,101 --> 00:03:00,548
+Deuxième levier : utiliser le bon modèle pour chaque tâche.
+
+32
+00:03:01,048 --> 00:03:07,316
+Un petit modèle pour classer, router, extraire, résumer, ou faire tourner des sous-agents simples.
+
+33
+00:03:07,816 --> 00:03:11,124
+Il peut être dix fois moins cher, et bien plus rapide.
+
+34
+00:03:11,624 --> 00:03:18,078
+Un grand modèle pour planifier, raisonner, écrire du code difficile, ou prendre des décisions importantes.
+
+35
+00:03:18,578 --> 00:03:25,578
+Et la cascade : on essaie d'abord le petit modèle. S'il échoue, ou s'il exprime un doute, on passe au grand.
+
+36
+00:03:26,078 --> 00:03:31,360
+Mais on mesure toujours : chaque changement de modèle passe par les évaluations du module quatorze.
+
+37
+00:03:32,210 --> 00:03:35,622
+Côté vitesse, voici les leviers les plus efficaces.
+
+38
+00:03:36,122 --> 00:03:42,460
+Streamer la réponse : le premier mot s'affiche en moins d'une seconde. La perception change complètement.
+
+39
+00:03:42,960 --> 00:03:46,709
+Paralléliser les appels d'outils, et les sous-agents indépendants.
+
+40
+00:03:47,209 --> 00:03:53,036
+Réduire le nombre de tours : de meilleurs outils, orientés tâche, évitent des allers-retours.
+
+41
+00:03:53,536 --> 00:03:58,969
+Et adapter le budget de réflexion : la réflexion étendue, seulement quand elle sert vraiment.
+
+42
+00:03:59,819 --> 00:04:03,429
+Dernier levier, pour ce qui n'est pas urgent : le traitement par lots.
+
+43
+00:04:03,929 --> 00:04:09,745
+Le principe : on envoie des milliers de requêtes d'un coup, et les résultats arrivent dans les heures qui suivent.
+
+44
+00:04:10,245 --> 00:04:16,583
+Le gain : environ cinquante pour cent de réduction chez les principaux fournisseurs. Et il se cumule avec le cache.
+
+45
+00:04:17,083 --> 00:04:22,713
+Les usages : les évaluations de nuit, l'enrichissement de données, l'analyse de milliers de tickets.
+
+46
+00:04:23,563 --> 00:04:25,063
+Faisons le point.
+
+47
+00:04:25,563 --> 00:04:29,428
+Dans un agent, ce sont les tokens d'entrée qui dominent la facture.
+
+48
+00:04:29,928 --> 00:04:36,127
+Le cache de prompt : le stable en haut, et environ quatre-vingt-dix pour cent d'économie sur les relectures.
+
+49
+00:04:36,627 --> 00:04:40,585
+Des résultats d'outils compacts, et la compaction du contexte.
+
+50
+00:04:41,085 --> 00:04:44,822
+Le bon modèle pour chaque tâche, validé par les évaluations.
+
+51
+00:04:45,322 --> 00:04:49,477
+Et le streaming, le parallélisme, et les lots pour le non-urgent.
+
+52
+00:04:50,327 --> 00:04:51,827
+À toi de jouer.
+
+53
+00:04:52,327 --> 00:04:56,564
+Mesure le coût moyen d'une tâche de ton agent, grâce à l'objet usage.
+
+54
+00:04:57,064 --> 00:05:01,092
+Active le cache de prompt, et vérifie les tokens lus depuis le cache.
+
+55
+00:05:01,592 --> 00:05:04,517
+Passe les sous-tâches simples sur un petit modèle.
+
+56
+00:05:05,017 --> 00:05:09,521
+L'objectif : diviser le coût par deux, sans baisse du score d'évaluation.
+
+57
+00:05:10,371 --> 00:05:12,669
+Dernier module : le déploiement.
+
+58
+00:05:13,169 --> 00:05:21,423
+Un backend Spring Boot, une interface Angular en streaming, et une file d'attente pour les tâches longues. On met tout en ligne.

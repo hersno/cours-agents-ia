@@ -1,0 +1,247 @@
+1
+00:00:00,300 --> 00:00:02,691
+Module 18 : Le déploiement.
+
+2
+00:00:03,191 --> 00:00:04,943
+Dernier module du cours.
+
+3
+00:00:05,443 --> 00:00:14,115
+On assemble tout : un backend Spring Boot, une interface Angular en streaming, et ce qu'il faut pour tenir en production.
+
+4
+00:00:14,965 --> 00:00:20,688
+Bonne nouvelle pour un développeur fullstack : un agent en production est une application comme une autre.
+
+5
+00:00:21,188 --> 00:00:25,634
+Une API, une interface, une base, de la sécurité, des logs.
+
+6
+00:00:26,134 --> 00:00:33,830
+Avec quelques spécificités : des réponses longues et progressives, des coûts variables, et un comportement non déterministe.
+
+7
+00:00:34,680 --> 00:00:38,371
+Voici l'architecture que nous visons pour notre assistant fil rouge.
+
+8
+00:00:38,871 --> 00:00:43,584
+Une interface Angular, avec un chat qui affiche les réponses en streaming.
+
+9
+00:00:44,084 --> 00:00:51,513
+Une API Spring Boot : elle authentifie l'utilisateur, fait tourner l'agent, et applique la politique de sécurité.
+
+10
+00:00:52,013 --> 00:00:54,717
+L'API du fournisseur de modèles.
+
+11
+00:00:55,217 --> 00:01:00,452
+Les outils : tes services métier, la base de données, et les serveurs MCP.
+
+12
+00:01:00,952 --> 00:01:05,653
+Et tout autour, l'observabilité : traces, coûts, et évaluations.
+
+13
+00:01:06,503 --> 00:01:10,728
+Selon la durée de la tâche, on choisit entre trois modes d'exécution.
+
+14
+00:01:11,228 --> 00:01:16,452
+Le mode synchrone, pour les tâches de moins de dix secondes : une requête REST classique.
+
+15
+00:01:16,952 --> 00:01:24,939
+Le streaming, de dix secondes à deux minutes : des Server-Sent Events, et l'utilisateur suit la réponse en direct.
+
+16
+00:01:25,439 --> 00:01:27,911
+C'est le cas le plus courant pour un assistant.
+
+17
+00:01:28,411 --> 00:01:36,316
+L'asynchrone, pour les tâches de plusieurs minutes ou plusieurs heures : une file d'attente, un worker, et une notification à la fin.
+
+18
+00:01:37,166 --> 00:01:42,866
+Côté Angular, voici un service qui consomme le point d'entrée en streaming du module dix.
+
+19
+00:01:43,366 --> 00:01:48,276
+On utilise fetch plutôt qu'EventSource, car on envoie la question en POST.
+
+20
+00:01:48,776 --> 00:01:54,313
+On lit le corps de la réponse au fil de l'eau, on découpe les événements, et on les émet dans un Observable.
+
+21
+00:01:54,813 --> 00:02:02,684
+Et un détail élégant : quand le composant se désabonne, la requête est annulée. C'est notre bouton stop, côté serveur comme côté client.
+
+22
+00:02:03,534 --> 00:02:07,155
+Et voici le composant de chat, avec les signals d'Angular.
+
+23
+00:02:07,655 --> 00:02:13,413
+À chaque morceau reçu, on l'ajoute au signal de la réponse, et l'affichage se met à jour tout seul.
+
+24
+00:02:13,913 --> 00:02:20,483
+Un signal indique si une réponse est en cours, pour afficher le bouton stop. Et stop se contente de se désabonner.
+
+25
+00:02:20,983 --> 00:02:26,160
+En une trentaine de lignes, on a un chat en streaming, interruptible.
+
+26
+00:02:27,010 --> 00:02:32,129
+Une interface d'agent va plus loin qu'un simple chat. Le serveur envoie des événements typés.
+
+27
+00:02:32,629 --> 00:02:36,703
+Des événements texte : les morceaux de réponse, au fil de l'eau.
+
+28
+00:02:37,203 --> 00:02:43,646
+Des événements d'étape : recherche dans la documentation, lecture d'un ticket. L'utilisateur voit l'agent travailler.
+
+29
+00:02:44,146 --> 00:02:50,600
+Des demandes de validation : une carte avec autoriser ou refuser, pour les actions sensibles du module seize.
+
+30
+00:02:51,100 --> 00:02:58,413
+Et un retour : un pouce levé ou baissé sur chaque réponse, relié à la trace. Ce sont les meilleures données pour tes évaluations.
+
+31
+00:02:59,263 --> 00:03:02,339
+Pour les tâches longues, on passe en asynchrone.
+
+32
+00:03:02,839 --> 00:03:09,723
+La demande devient un job, déposé dans une file d'attente : RabbitMQ, Kafka, ou même une simple table en base.
+
+33
+00:03:10,223 --> 00:03:15,156
+Des workers exécutent l'agent, avec des limites de durée et de coût.
+
+34
+00:03:15,656 --> 00:03:21,588
+La progression est consultable, et l'état est sauvegardé à chaque étape, pour reprendre après une panne.
+
+35
+00:03:22,088 --> 00:03:29,227
+Et une notification prévient l'utilisateur à la fin : un mail, un message Slack, ou une notification dans l'application.
+
+36
+00:03:30,077 --> 00:03:33,292
+Avant de mettre en production, passe cette checklist.
+
+37
+00:03:33,792 --> 00:03:38,180
+Les secrets sont dans un coffre, jamais dans le code ni dans le prompt.
+
+38
+00:03:38,680 --> 00:03:44,530
+Des quotas par utilisateur, des délais d'expiration, des nouveaux essais, et un modèle de secours.
+
+39
+00:03:45,030 --> 00:03:48,640
+Des traces, un tableau de bord, et des alertes de coût.
+
+40
+00:03:49,140 --> 00:03:53,052
+Des évaluations en intégration continue, et des prompts versionnés.
+
+41
+00:03:53,552 --> 00:03:58,149
+Une politique de sécurité, avec refus par défaut et validation humaine.
+
+42
+00:03:58,649 --> 00:04:02,584
+Et un interrupteur, pour couper l'agent instantanément en cas de problème.
+
+43
+00:04:03,434 --> 00:04:06,881
+Enfin, on ne déploie pas un agent pour tout le monde d'un coup.
+
+44
+00:04:07,381 --> 00:04:13,231
+D'abord, le mode fantôme : l'agent tourne sur de vraies demandes, mais personne ne voit ses réponses.
+
+45
+00:04:13,731 --> 00:04:15,924
+On compare avec ce qu'ont fait les humains.
+
+46
+00:04:16,424 --> 00:04:20,928
+Ensuite, une bêta avec quelques utilisateurs volontaires, qui donnent leur avis.
+
+47
+00:04:21,428 --> 00:04:27,743
+Puis une ouverture progressive : dix pour cent, cinquante, puis cent pour cent des utilisateurs.
+
+48
+00:04:28,243 --> 00:04:35,498
+Et l'amélioration continue : les traces alimentent les évaluations, qui guident les corrections. Le travail ne s'arrête jamais vraiment.
+
+49
+00:04:36,348 --> 00:04:40,109
+Prenons un moment pour regarder le chemin parcouru dans ce cours.
+
+50
+00:04:40,609 --> 00:04:46,262
+Au niveau un, tu as appris ce qu'est un agent, comment fonctionne un LLM, et comment lui parler.
+
+51
+00:04:46,762 --> 00:04:52,438
+Au niveau deux, tu as construit un agent complet à la main : outils, boucle, mémoire, RAG et recherche.
+
+52
+00:04:52,938 --> 00:05:00,843
+Au niveau trois, tu es passé à l'échelle : frameworks, Java, MCP, planification, et multi-agents.
+
+53
+00:05:01,343 --> 00:05:09,307
+Et au niveau quatre, tu as appris à rendre un agent fiable en production : évaluations, observabilité, sécurité, coûts, et déploiement.
+
+54
+00:05:10,157 --> 00:05:13,209
+Il reste un dernier atelier : le projet final.
+
+55
+00:05:13,709 --> 00:05:20,152
+Assemble ton assistant d'équipe : le backend Spring Boot, l'interface Angular, et tes outils MCP.
+
+56
+00:05:20,652 --> 00:05:26,224
+Avec la mémoire, le RAG sur ta documentation, la politique de sécurité, et les traces.
+
+57
+00:05:26,724 --> 00:05:31,286
+Un jeu de trente évaluations en intégration continue, et un coût par tâche suivi.
+
+58
+00:05:31,786 --> 00:05:37,648
+Puis déploie-le en bêta auprès de trois collègues, et recueille leurs retours. C'est là que tu apprendras le plus.
+
+59
+00:05:38,498 --> 00:05:44,047
+Et voilà. Tu as parcouru tout le chemin, de zéro à expert. Bravo pour ta persévérance.
+
+60
+00:05:44,547 --> 00:05:49,840
+Le domaine évolue très vite : de nouveaux modèles et de nouveaux outils sortent chaque mois.
+
+61
+00:05:50,340 --> 00:05:57,595
+Mais les fondamentaux que tu as appris, la boucle, les outils, le contexte, les évaluations et la sécurité, resteront valables.
+
+62
+00:05:58,095 --> 00:06:00,358
+Maintenant, à toi de construire.
